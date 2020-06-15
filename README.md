@@ -1,4 +1,5 @@
-# Grafiki
+# Grafiki ![File-list](./grafiki/media/app/imgs/small_face.png?raw=true "file list")
+
 Grafiki is a Django project about Sysmon and graphs, for the time being.  
 In my opinion EventViewer, Elastic and even Kibana, are not graphic enough. The current threats are complicated and if attackers think in graphs, defenders also must do it.  
 This is a proof of concept, the code was not debugged jet but maybe could be useful for someone, I will improve it.  
