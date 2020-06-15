@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% block content_header %}
+      <div class="row">
+        <div class="col">
+          <h2>Examples</h2>
+        </div>
+        <div class="col">
+          <div class="row justify-content-center">
+            <p>
+              <a onclick="return open_modal('{% url 'create_example' %}')" class="btn btn-primary">
+              Create Example</a>
+            </p>
+          </div>
+          </div>
+        </div>
+      {% endblock %}
+  <input class="form-control" id="myInput" type="text" placeholder="Search..">
+  <table class="table table-striped table-hover mb-0">
+    <thead align="center">
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Link</th>
+        <th>Source</th>
+        <th>Delete</th>
+        <th>Process</th>
+        <th>Process Simple</th>
+        <th>Process BeatS</th>
+      </tr>
+    </thead>
+    <tbody id="myList">
+      {% for example in examples %}
+        <tr>
+          <td>{{ example.name }}</td>
+          <td>{{ example.category }}</td>
+          <td align="center">
+            <a href="{{ example.url }}">
+              <span class="fa fa-link"></span>
+            </a>
+          </td>
+          <td align="center">
+            <a href="{{ example.source }}">
+              <span class="fa fa-link"></span>
+            </a>
+          </td>
+          <td align="center">
+          <form method="post" action="{% url 'delete_example' example.pk %}">
+              {% csrf_token %}
+              <button type="submit">
+              <span type="submit" class="fa fa-trash"></span></button>
+          </form>
+          </td>
+          <td align="center">
+            <form method="post" action="{% url 'process_example' example.pk %}">
+              {% csrf_token %}
+              <button type="submit">
+              <span type="submit" class="fa fa-code-fork"></span></button>
+          </form>
+          </td>
+          <td align="center">
+            <form method="post" action="{% url 'process_example_simple' example.pk %}">
+              {% csrf_token %}
+              <button type="submit">
+              <span type="submit" class="fa fa-code-fork"></span></button>
+          </form>
+          </td>
+          <td align="center">
+            <form method="post" action="{% url 'process_beat_simple' example.pk %}">
+              {% csrf_token %}
+              <button type="submit">
+              <span type="submit" class="fa fa-code-fork"></span></button>
+          </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div id="popup" class="modal fade" role="dialog"></div>
+  <script type="text/javascript">
+    function open_modal(url)
+    {
+            $('#popup').load(url, function()
+            {
+                    $(this).modal('show');
+            });
+            return false;
+    }
+
+    function close_modal()
+    {
+            $('#popup').modal('hide');
+            return false;
+    }
+
+    $(document).ready(function(){
+      $("#myInput").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#myList tr").filter(function() {
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+      });
+    });
+  </script>
+{% endblock %}

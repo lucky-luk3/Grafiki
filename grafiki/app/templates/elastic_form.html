@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Elastic</h2>
+  <!-- HIDDEN DYNAMIC ELEMENT TO CLONE -->
+  <!-- you can replace it with any other elements -->
+  <div class="form-group dynamic-element" style="display:none">
+    <div class="row">
+    <div class="col-md-auto"></div>
+
+    <!-- Replace these fields -->
+    <div class="col-md-auto">
+      <select id="element" name="elements" class="form-control">
+        <option value="host_name">Hostname</option>
+        <option value="event_id">Event ID</option>
+        <option value="src_ip_addr">Source IP</option>
+        <option value="dst_ip_addr">Destination IP</option>
+        <option value="dst_ip_type">Destination IP Type</option>
+        <option value="user_account">User Account</option>
+        <option value="process_name">Process Name</option>
+      </select>
+    </div>
+    <div class="col-md-auto">
+      <select id="operator" name="operators" class="form-control">
+        <option value="=">Equal</option>
+        <option value="!=">Different</option>
+      </select>
+    </div>
+      <div class="col-md-auto">
+      <input class="form-control" name="text" type="text" placeholder="Text" required>
+    </div>
+      <!-- End of fields-->
+      <div class="col-md-auto">
+        <p class="delete">x</p>
+      </div>
+    </div>
+  </div>
+  <!-- END OF HIDDEN ELEMENT -->
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row align-items-start">
+      <div class="col-md-auto">
+        <div class="input-group date" id="from" data-target-input="nearest">
+          <input placeholder="From" name="from" type="text" class="form-control datetimepicker-input" data-target="#from" required/>
+          <div class="input-group-append" data-target="#from" data-toggle="datetimepicker">
+            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-auto">
+        <div class="input-group date" id="to" data-target-input="nearest">
+          <input placeholder="To" name="to" type="text" class="form-control datetimepicker-input" data-target="#to" required/>
+          <div class="input-group-append" data-target="#to" data-toggle="datetimepicker">
+            <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br/>
+      <fieldset>
+            <!-- Form Name -->
+        <div class="row align-items-start">
+          <div class="col-md-auto">
+            <h3>Filters:</h3>
+          </div>
+
+        </div>
+
+        <div class="row align-items-start">
+          <div class="dynamic-stuff">
+            <!-- Dynamic element will be cloned here -->
+            <!-- You can call clone function once if you want it to show it a first element-->
+          </div>
+        </div>
+          <!-- Button -->
+          <div class="form-group">
+            <div class="row align-items-start">
+              <div class="col-md-auto">
+                  <p class="add-one"><i class="fa fa-plus"></i> Add Filter</p>
+              </div>
+            </div>
+          </div>
+
+      </fieldset>
+
+    <div class="row align-items-start">
+      <div class="col-md-auto">
+        <div>
+          <button type="submit">Graph</button>
+        </div>
+      </div>
+
+      <div class="col-md-auto">
+        <div class="checkbox">
+          <input id="simple" type="checkbox" class="styled" name='options' value='simple' checked>
+          <label for="simple">Simple Graph</label>
+        </div>
+      </div>
+      <div class="col-md-auto">
+        <div class="checkbox">
+          <input id="sysmon" type="checkbox" class="styled" name='options' value='sysmon' checked>
+          <label for="sysmon">Sysmon</label>
+        </div>
+      </div>
+      <div class="col-md-auto">
+        <div class="checkbox">
+          <input id="powershell" type="checkbox" class="styled" name='options' value='powershell' checked>
+          <label for="powershell">PowerShell</label>
+        </div>
+      </div>
+    </div>
+
+    <br/>
+
+  </form>
+    <script>
+      $(function () {
+        $("#from").datetimepicker({
+          format: 'YYYY-MM-DD HH:mm:ss',
+        });
+        $("#to").datetimepicker({
+          format: 'YYYY-MM-DD HH:mm:ss',
+        });
+      });
+      //Clone the hidden element and shows it
+      $('.add-one').click(function(){
+        $('.dynamic-element').first().clone().appendTo('.dynamic-stuff').show();
+        attach_delete();
+      });
+      //Attach functionality to delete buttons
+      function attach_delete(){
+        $('.delete').off();
+        $('.delete').click(function(){
+          console.log("click");
+          $(this).closest('.form-group').remove();
+        });
+      }
+    </script>
+  {% if url %}
+    <p>Uploaded file: <a href="{{ url }}">{{ url }}</a></p>
+
+  {% endif %}
+{% endblock %}

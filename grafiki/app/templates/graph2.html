@@ -1,0 +1,922 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+  <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.css"
+    />
+    <style type="text/css">
+        #mynetwork {
+          height: 700px;
+        }
+
+      </style>
+    {% endblock %}
+    {% block body_label %}
+        <div id="loader">
+          <div class="loader">Loading...</div>
+        </div>
+        <div>
+    {% endblock %}
+    {% block content %}
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#sysmon" role="tab" aria-controls="home" aria-selected="true">Sysmon</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#powershell" role="tab" aria-controls="profile" aria-selected="false">Powershell</a>
+      </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active" id="sysmon" role="tabpanel" aria-labelledby="sysmon-tab">
+        <div><br/></div>
+        <div class="panel-group" id="accordion">
+        <div>
+          <div class="panel-heading">
+            <h4 class="panel-title">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+              Graph Filters</a>
+            </h4>
+          </div>
+          <div id="collapse1" class="panel-collapse collapse in">
+            <div class="row align-items-start">
+            <div class="col-md-auto">
+              <div class="span6" style="padding-right:20px; border-right: 1px solid #ccc;">
+                <h5>Process</h5>
+                <div id="process-filters">
+                  <div>
+                    <a data-toggle="collapse" href="#integrity-filters" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    Integrity
+                    </a>
+                    <div id="integrity-filters" class="collapse">
+                      {% for integrity in integrities %}
+                      <div class="checkbox">
+                        <input id="{{integrity.integritylevel}}" type="checkbox" class="styled" name='nodesFilter' value='{{integrity.integritylevel}}'  checked>
+                        <label for="{{integrity.integritylevel}}">{{integrity.integritylevel}}</label>
+                      </div>
+                      {% endfor %}
+                      <div class="checkbox">
+                        <input id="null" type="checkbox" class="styled" name='nodesFilter' value='null' checked>
+                        <label for="null">Null</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <a data-toggle="collapse" href="#sessions-filters" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    Session
+                    </a>
+                    <div id="sessions-filters" class="collapse">
+                      {% for session in sessions %}
+                      <div class="checkbox">
+                        <label><input type="checkbox" value={{session.terminalsessionid}}>{{session.terminalsessionid}}</label>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div>
+                    <a data-toggle="collapse" href="#users-filters" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    User
+                    </a>
+                    <div id="users-filters" class="collapse">
+                      {% for user in users %}
+                      <div class="checkbox">
+                        <label><input type="checkbox" value={{user.user}}>{{user.user}}</label>
+                      </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  </div>
+              <br/>
+                <div>
+                  <button class="btn btn-primary" onclick="delete_group()">Delete Group</button>
+                  <button class="btn btn-primary" onclick="delete_recursive()">Delete Group Recursive</button>
+                </div>
+                <br/>
+                <div>
+                  <label><h4 style="vertical-align:'bottom'">Animation:</h4></label>
+                  <button class="btn btn-primary" onclick="animation()"><i class="fa fa-play"></i></button>
+                  <button class="btn btn-primary" onclick="pause_animation()"><i class="fa fa-pause"></i></button>
+                  <button class="btn btn-primary" onclick="stop_animation()"><i class="fa fa-stop"></i></button>
+                  <input type="range" class="custom-range" id="customRange1" min="1" max="100" value="3">
+                  <div id="result">Speed: <b></b></div>
+
+                </div>
+              </div>
+            </div>
+            <div class="col-md-auto" >
+              <div class="span8" style="padding-right:20px; border-right: 1px solid #ccc;">
+                <h5>Actions</h5>
+                <div id="actions-filters">
+                  <div class="row align-items-start">
+                  <div class="col-md-auto">
+                    <div class="checkbox checkbox-create">
+                      <input id="createCheck" type="checkbox" class="styled" name='edgesFilter' value="create" checked>
+                      <label for="createCheck">Create</label>
+                    </div>
+                    <div class="checkbox checkbox-finish">
+                      <input id="finishCheck" type="checkbox" class="styled" name='edgesFilter' value="finish" checked>
+                      <label for="finishCheck">Finish</label>
+                    </div>
+                    <div class="checkbox checkbox-access">
+                      <input id="accessCheck" type="checkbox" class="styled" name='edgesFilter' value="access" checked>
+                      <label for="accessCheck">Access</label>
+                    </div>
+                    <div class="checkbox checkbox-change">
+                      <input id="changeCheck" type="checkbox" class="styled" name='edgesFilter' value="change" checked>
+                      <label for="changeCheck">Change</label>
+                    </div>
+                  </div>
+                  <div class="col-md-auto">
+                    <div class="checkbox checkbox-delete">
+                      <input id="deleteCheck" type="checkbox" class="styled" name='edgesFilter' value="delete" checked>
+                      <label for="deleteCheck">Delete</label>
+                    </div>
+                    <div class="checkbox checkbox-rename">
+                      <input id="renameCheck" type="checkbox" class="styled" name='edgesFilter' value="rename" checked>
+                      <label for="renameCheck">Rename</label>
+                    </div>
+                    <div class="checkbox checkbox-connect">
+                      <input id="connectCheck" type="checkbox" class="styled" name='edgesFilter' value="connect" checked>
+                      <label for="connectCheck">Connect</label>
+                    </div>
+                    <div class="checkbox checkbox-owned">
+                      <input id="ownedCheck" type="checkbox" class="styled" name='edgesFilter' value="owned" checked>
+                      <label for="ownedCheck">Owned</label>
+                    </div>
+                    <div class="checkbox checkbox-load">
+                      <input id="loadCheck" type="checkbox" class="styled" name='edgesFilter' value="load" checked>
+                      <label for="loadCheck">Load</label>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+              <div class="col-md-auto">
+
+                  <h5>Elements</h5>
+                  <div id="elements-filters">
+                    <div class="row align-items-start">
+                      <div class="col-md-auto">
+                        <div class="checkbox checkbox-process">
+                          <input id="computerCheck" type="checkbox" class="styled" name='nodesFilter' value="computer" checked>
+                          <label for="computerCheck">Computer</label>
+                        </div>
+                        <div class="checkbox checkbox-process">
+                          <input id="processCheck" type="checkbox" class="styled" name='nodesFilter' value="process" checked>
+                          <label for="processCheck">Process</label>
+                        </div>
+                        <div class="checkbox checkbox-thread">
+                          <input id="threadCheck" type="checkbox" class="styled" name='nodesFilter' value="thread"  checked>
+                          <label for="threadCheck">Thread</label>
+                        </div>
+                        <div class="checkbox checkbox-connection">
+                          <input id="connectionCheck" type="checkbox" class="styled" name='nodesFilter' value="connection" checked>
+                          <label for="connectionCheck">Connection</label>
+                        </div>
+                        <div class="checkbox checkbox-file">
+                          <input id="fileCheck" type="checkbox" name='nodesFilter' class="styled" value="file" checked>
+                          <label for="fileCheck">File</label>
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="checkbox checkbox-pipe">
+                          <input id="pipeCheck" type="checkbox" name='nodesFilter' class="styled" value="pipe" checked>
+                          <label for="pipeCheck">Pipe</label>
+                        </div>
+                        <div class="checkbox checkbox-rkey">
+                          <input id="rkeyCheck" type="checkbox" name='nodesFilter' class="styled" value="registrykey" checked>
+                          <label for="rkeyCheck">RegistryKey</label>
+                        </div>
+                        <div class="checkbox checkbox-dnsq">
+                          <input id="dnsqCheck" type="checkbox" name='nodesFilter' class="styled" value="dnsquery" checked>
+                          <label for="dnsqCheck">DNSQuery</label>
+                        </div>
+                        <div class="checkbox checkbox-dnsr">
+                          <input id="dnsrCheck" type="checkbox" name='nodesFilter' class="styled" value="dnsresolution" checked>
+                          <label for="dnsrCheck">DNSResolution</label>
+                        </div>
+                      </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+          <div><br/></div>
+        <div id="mynetwork">
+        </div>
+        <div>
+          <pre id="eventSpan"></pre>
+        </div>
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+            Settings</a>
+          </h4>
+        </div>
+        <div id="collapse2" class="panel-collapse collapse in">
+          <div id="myoptions"></div>
+        </div>
+        <script type="text/javascript">
+
+          function delete_group(){
+            node_id = network.getSelectedNodes()
+            arrayOfEdges = network.getConnectedEdges(node_id)
+            arrayOfParents = network.getConnectedNodes(node_id, 'to')
+            arrayOfParents.forEach(delete_node)
+            arrayOfEdges.forEach(delete_edge)
+            if(isNaN(node_id)){
+                nodes.remove(node_id)
+              }
+            else{ nodes.remove(parseInt(node_id))}
+
+
+            function delete_node(value){
+              if(isNaN(value)){
+                nodes.remove(value)
+              }
+              else{ nodes.remove(parseInt(value))}
+            }
+            function delete_edge(value){
+              if(isNaN(value)){
+                edges.remove(value)
+              }
+              else{ edges.remove(parseInt(value))}
+            }
+          }
+
+          function delete_recursive(){
+            node_id = network.getSelectedNodes()
+            delete_group_recursive(node_id)
+          }
+
+          function delete_group_recursive(value){
+            arrayOfParents = network.getConnectedNodes(value, 'to')
+            console.log("Array: " + arrayOfParents)
+            arrayOfParents.forEach(delete_group_recursive)
+            if(isNaN(value)){
+                nodes.remove(value)
+              }
+            else{ nodes.remove(parseInt(value))}
+          }
+
+          var paused = false;
+          function pause_animation(){
+            if (! paused){
+              paused = true;}
+            else{
+              paused = false;
+            }
+          }
+
+          var stopped = false;
+          function stop_animation(){
+            stopped = true;
+          }
+
+
+          async function animation(){
+            var list_edges_full = edgesView.getIds()
+            var list_nodes = nodesView.getIds()
+            var list_edges_filtered = []
+            for (const prop in list_edges_full) {
+              var my_edge = edgesView.get(list_edges_full[prop]);
+              if(list_nodes.includes(my_edge.from) && list_nodes.includes(my_edge.to)){
+                list_edges_filtered.push(list_edges_full[prop])
+              }
+            }
+            for (const prop in list_nodes) {
+              //var my_edge = NodesView.get(list_nodes[prop]);
+              nodes.update([{id:list_nodes[prop],hidden: true}])
+            }
+
+            var list = list_edges_filtered
+
+            for (const prop in list) {
+              //var my_edge = edgesView.get(list[prop]);
+              edges.update([{id:list[prop],hidden: true}])
+            }
+
+            var e_dates = {};
+            var dates = [];
+            for (const prop in list) {
+              var my_edge = edgesView.get(list[prop]);
+              var date_time = my_edge.utctime
+              if(date_time != null){
+                //console.log(date_time);
+                //e_dates[list[prop]] = date_time
+                dates.push(date_time)
+              }
+            }
+
+            dates.sort();
+
+            for (const prop in list) {
+              var my_edge = edgesView.get(list[prop]);
+              //console.log(my_edge)
+
+              var date_time = my_edge.utctime;
+              var pos = dates.indexOf(date_time);
+              while (typeof e_dates[pos] !== 'undefined'){
+                pos = pos + 1}
+              e_dates[pos] = list[prop];
+            }
+            //console.log(e_dates)
+            i = Object.keys(e_dates).length - 1
+              for (let prop = 0; prop <= i; prop++) {
+                var lastEdge = edgesView.get(e_dates[prop -1]);
+                var currentEdge = edgesView.get(e_dates[prop]);
+                if (lastEdge.utctime != currentEdge.utctime && stopped == false){
+                  var speed = 2000/$("#customRange1").val()
+
+                  await sleep(speed);
+                  }
+                nodes.update([{id:currentEdge.from,hidden: false}, {id:currentEdge.to,hidden: false}]);
+                edges.update([{id:currentEdge.id,hidden: false}]);
+
+                while (paused == true){
+                  await sleep(1000);
+                }
+              }
+          }
+
+          function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+          }
+
+
+          const nodeFilters = document.getElementsByName('nodesFilter')
+          const edgeFilters = document.getElementsByName('edgesFilter')
+
+          function makeid(length) {
+             var result           = '';
+             var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+             var charactersLength = characters.length;
+             for ( var i = 0; i < length; i++ ) {
+                result += characters.charAt(Math.floor(Math.random() * charactersLength));
+             }
+             return result;
+          }
+
+
+          function startNetwork(data) {
+            const container = document.getElementById('mynetwork')
+
+            var options = {
+                  interaction:{hover:true},
+                  manipulation: {
+                      enabled: true,
+                      addEdge: function (data, callback) {
+                        if (data.from == data.to) {
+                            var r = confirm("Do you want to connect the node to itself?");
+                            if (r === true) {
+                                callback(data);
+                            }
+                        }
+                        else {
+                            callback(data);
+                        }
+                        // after each adding you will be back to addEdge mode
+                        network.addEdgeMode();
+                        data.id = makeid(10)
+                        data.group = "create"
+                        data.value = 1
+                        data.color = "blue"
+                        edges.add(data)
+                      },
+                      editEdge: true,
+                      addNode: function (data2, callback) {
+                        //console.log(data2)
+                        //callback(data2);
+                        network.addNodeMode();
+                        data2.id = makeid(10)
+                        data2.group = ["process", "file"]
+                        data2.label = "Process"
+                        data2.title= "Process"
+                        data2.integrity= "Medium"
+
+                        console.log(data2)
+                        nodes.add(data2)
+                      },
+                      deleteNode: true,
+                      deleteEdge: true
+                  },
+              autoResize: true,
+              height:'100%',
+              width: '100%',
+              edges:{
+                arrowStrikethrough: false
+              },
+              nodes:{
+                shape:'box',
+                shapeProperties: {
+                  interpolation: false    // 'true' for intensive zooming
+                },
+                scaling: {
+                  customScalingFunction: function (min,max,total,value) {
+                    return value/total;
+                  },
+                  min:1,
+                  max:10
+                }
+              },
+              configure: {
+                enabled: true,
+                filter: 'physics',
+                container: myoptions,
+                showButton: true
+              },
+              layout: {
+                improvedLayout: true
+              },
+              physics:{
+                enabled: true,
+                minVelocity: 0.75,
+                stabilization:false,
+                solver: "barnesHut",
+                barnesHut: {
+                  gravitationalConstant: -2000,
+                  centralGravity: 0.3,
+                  springLength: 95,
+                  springConstant: 0.04,
+                  damping: 0.09,
+                  avoidOverlap: 0
+                }
+              },
+              groups: {
+                  computer: {
+                      color: {background:'#97C2FC',border:'blue', border:'yellow', shape: 'box'}
+                  },
+                  process: {
+                      color: {background:'#97C2FC',border:'blue'}
+                  },
+                  thread: {
+                      color: {background:'#FB7E80',border:'green'}  //error en la forma y en la etiqueta
+                  },
+                  file: {
+                      color: {background:'#FB7E81',border:'red',shape: 'box'}
+                  },
+                  connection: {
+                      color: {background:'#FFFF00',border:'yellow',shape: 'diamond'}
+                  },
+                  pipe: {
+                      color: {background:'#33FFFC',border:'orange',shape: 'diamond'}
+                  },
+                  registrykey: {
+                      color: {background:'#FFFFFF',border:'blue'}
+                  },
+                  dnsquery: {
+                      color: {background:'#26FC08',border:'blue'}
+                  },
+                  dnsresolution: {
+                      color: {background:'#26FC08',border:'blue'}
+                  }
+               }
+            }
+            return new vis.Network(container, data, options)
+          }
+
+          /**
+           * In this example we do not mutate nodes or edges source data.
+           */
+          //const nodes = new vis.DataSet([])
+
+          //const edges = new vis.DataSet([])
+
+          /**
+           * filter values are updated in the outer scope.
+           * in order to apply filters to new values, DataView.refresh() should be called
+           */
+          let nodeFilterValue = ''
+          const edgesFilterValues = {
+            create: true,
+            finish: true,
+            access: true,
+            change: true,
+            delete: true,
+            rename: true,
+            connect: true,
+            owned: true,
+            load: true
+
+          }
+          const nodesFilterValues = {
+            computer: true,
+            process: true,
+            file: true,
+            thread: true,
+            connection: true,
+            pipe: true,
+            registrykey: true,
+            dnsquery: true,
+            dnsresolution: true,
+            System: true,
+            High: true,
+            Medium: true,
+            Low: true,
+            AppContainer: true,
+            None: true,
+            null: true
+          }
+
+          /*
+            filter function should return true or false
+            based on whether item in DataView satisfies a given condition.
+          */
+
+          const nodesFilter = (node) => {
+            //console.log(nodesFilterValues[node.group])
+            response_group = nodesFilterValues[node.group]
+            response_integrity = nodesFilterValues[node.integrity]
+            if (node.group === "process"){
+              if (response_group && response_integrity){
+                return true
+              }
+               else { return false}
+            }
+            else{
+              return response_group
+            }
+          }
+
+          const edgesFilter = (edge) => {
+            return edgesFilterValues[edge.group]
+          }
+          var n = {{ edges | safe}};
+          var edges = new vis.DataSet(n);
+          var m = {{ nodes | safe}};
+          var nodes = new vis.DataSet(m);
+
+
+          const edgesView = new vis.DataView(edges, { filter: edgesFilter })
+          const nodesView = new vis.DataView(nodes, { filter: nodesFilter })
+
+          nodeFilters.forEach(filter => filter.addEventListener('change', (e) => {
+            const { value, checked } = e.target
+            nodesFilterValues[value] = checked
+            nodesView.refresh()
+          }))
+
+          edgeFilters.forEach(filter => filter.addEventListener('change', (e) => {
+            const { value, checked } = e.target
+            edgesFilterValues[value] = checked
+            edgesView.refresh()
+          }))
+
+          var network = startNetwork({ nodes: nodesView, edges: edgesView })
+
+          network.on("hoverNode", function (params) {
+              //document.getElementById('eventSpan').innerHTML = '<h2>showPopup event: </h2>' + JSON.stringify(params, null, 4);
+              console.log('showPopup Event');
+          });
+          network.on("blurNode", function () {
+              console.log('hidePopup Event');
+          });
+          network.on("click", function (params) {
+              params.event = "[original event]";
+              var node_id = this.getNodeAt(params.pointer.DOM)
+              var edge_id = this.getEdgeAt(params.pointer.DOM)
+              if (node_id){
+                node = nodes.get(node_id)
+                console.log('item1', node);
+                if (node.group == 'process'){
+                  fetch('http://127.0.0.1:8000/api/v1/processes/?processguid=' + node_id)
+                    .then(function(response) {
+                      return response.json();
+                    })
+                    .then(function(myJson) {
+                      //console.log(myJson[0]['processguid']);
+                      document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Process Info:</h2>'
+                      + JSON.stringify(myJson, null, 4) + '</div>';
+                      //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+                    })
+                }
+                else if (node.group == 'file'){
+                  fetch('http://127.0.0.1:8000/api/v1/files/?filename=' + node_id)
+                    .then(function(response) {
+                      return response.json();
+                    })
+                    .then(function(myJson) {
+                      console.log(myJson[0]['filename']);
+                      document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>File Info:</h2>'
+                      + JSON.stringify(myJson, null, 4) + '</div>';
+                      //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+                    })
+                }
+                else if (node.group == 'registrykey'){
+                  fetch('http://127.0.0.1:8000/api/v1/registrykeys/?key=' + node_id)
+                    .then(function(response) {
+                      return response.json();
+                    })
+                    .then(function(myJson) {
+                      console.log(myJson[0]['filename']);
+                      document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>RegistryKey Info:</h2>'
+                      + JSON.stringify(myJson, null, 4) + '</div>';
+                      //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+                    })
+                }
+                else if (node.group == 'thread'){
+                  fetch('http://127.0.0.1:8000/api/v1/threads/?threadid=' + node_id)
+                    .then(function(response) {
+                      return response.json();
+                    })
+                    .then(function(myJson) {
+                      console.log(myJson[0]['threadid']);
+                      document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Thread Info:</h2>'
+                      + JSON.stringify(myJson, null, 4) + '</div>';
+                      //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+                    })
+                }
+                else if (node.group == 'connection'){
+                  fetch('http://127.0.0.1:8000/api/v1/connections/?connectionid=' + node_id)
+                    .then(function(response) {
+                      return response.json();
+                    })
+                    .then(function(myJson) {
+                      console.log(myJson[0]['connectionid']);
+                      document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Connection Info:</h2>'
+                      + JSON.stringify(myJson, null, 4) + '</div>';
+                      //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+                    })
+                }
+              }
+              else if (edge_id){
+                edge = edges.get(edge_id)
+                console.log('Edge', edge);
+                fetch('http://127.0.0.1:8000/api/v1/actions/?action_id=' + edge_id)
+                    .then(function(response) {
+                      return response.json();
+                    })
+                    .then(function(myJson) {
+                      console.log(myJson[0]['action_id']);
+                      document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Action Info:</h2>'
+                      + JSON.stringify(myJson, null, 4) + '</div>';
+                      //console.log('click event, getNodeAt returns: ' + this.getEdgeAt(params.pointer.DOM));
+                    })
+              }
+
+          });
+
+
+
+        </script>
+      </div>
+      <div class="tab-pane fade" id="powershell" role="tabpanel" aria-labelledby="powershell-tab">
+        <div class="container">
+          <div class="row">
+            <div class="col-8">
+              <h4>Search</h4>
+              <input class="form-control" id="myInput" type="text" placeholder="Search..">
+            </div>
+            <div class="col-4">
+              <h4>Select Number Of Rows</h4>
+              <div class="form-group"> 	<!--		Show Numbers Of Rows 		-->
+                <select class  ="form-control" name="state" id="maxRows">
+                     <option value="10">5</option>
+                     <option value="20">10</option>
+                     <option value="35">15</option>
+                     <option value="40">20</option>
+                     <option value="100">50</option>
+                     <option value="140">70</option>
+                     <option value="200">100</option>
+                </select>
+              </div>
+            </div>
+          <div class="table-responsive">
+            <table class="table table-striped" id= "table-id">
+              <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th><span class="nowrap">Event ID</span></th>
+                    <th style="word-break: break-all;" >Time</th>
+                    <th>Hostname</th>
+                    <th>Command</th>
+                </tr>
+                </thead>
+                <tbody id="myList">
+
+                {% for event in psevents %}
+                <tr class="accordion-toggle collapsed" id="id_event_{{ event.id }}" data-toggle="collapse" data-parent="#id_event_{{ event.id }}" href="#id_col_{{ event.id }}">
+                    <td class="expand-button"></td>
+                    <td>{{ event.id }}</td>
+                    <td><span class="nowrap">{{ event.utctime }}</span></td>
+                    <td>{{ event.computer_name }}</td>
+                    <td><span class="nowrap">{{ event.application }}</span></td>
+
+                </tr>
+                <tr class="hide-table-padding">
+                  <td></td>
+                  <td colspan="12">
+                  <div id="id_col_{{ event.id }}" class="collapse in p-3">
+                    <div class="row">
+                      <code>{% autoescape off %}{{event.param}}{% endautoescape %}</code>
+                    </div>
+                  </div></td>
+                </tr>
+                {% endfor %}
+            </table>
+          </div>
+
+<!--		Start Pagination -->
+        <div class='pagination-container' >
+            <nav>
+              <ul class="pagination">
+
+                <li class="page-item" data-page="prev" >
+                  <span class="page-link"> < <span class="sr-only">(current)</span></span>
+                </li>
+				   <!--	Here the JS Function Will Add the Rows -->
+                <li class="page-item" data-page="next" id="prev">
+                   <span class="page-link"> > <span class="sr-only">(current)</span></span>
+                </li>
+              </ul>
+            </nav>
+        </div>
+
+        </div>
+
+        <script>
+                    getPagination('#table-id');
+					//getPagination('.table-class');
+					//getPagination('table');
+
+		  /*					PAGINATION
+		  - on change max rows select options fade out all rows gt option value mx = 5
+		  - append pagination list as per numbers of rows / max rows option (20row/5= 4pages )
+		  - each pagination li on click -> fade out all tr gt max rows * li num and (5*pagenum 2 = 10 rows)
+		  - fade out all tr lt max rows * li num - max rows ((5*pagenum 2 = 10) - 5)
+		  - fade in all tr between (maxRows*PageNum) and (maxRows*pageNum)- MaxRows
+		  */
+
+
+function getPagination(table) {
+  var lastPage = 1;
+
+  $('#maxRows')
+    .on('change', function(evt) {
+      //$('.paginationprev').html('');						// reset pagination
+
+     lastPage = 1;
+      $('.pagination')
+        .find('li')
+        .slice(1, -1)
+        .remove();
+      var trnum = 0; // reset tr counter
+      var maxRows = parseInt($(this).val()); // get Max Rows from select option
+
+      if (maxRows == 5000) {
+        $('.pagination').hide();
+      } else {
+        $('.pagination').show();
+      }
+
+      var totalRows = $(table + ' tbody tr').length; // numbers of rows
+      $(table + ' tr:gt(0)').each(function() {
+        // each TR in  table and not the header
+        trnum++; // Start Counter
+        if (trnum > maxRows) {
+          // if tr number gt maxRows
+
+          $(this).hide(); // fade it out
+        }
+        if (trnum <= maxRows) {
+          $(this).show();
+        } // else fade in Important in case if it ..
+      }); //  was fade out to fade it in
+      if (totalRows > maxRows) {
+        // if tr total rows gt max rows option
+        var pagenum = Math.ceil(totalRows / maxRows); // ceil total(rows/maxrows) to get ..
+        //	numbers of pages
+        for (var i = 1; i <= pagenum; ) {
+          // for each page append pagination li
+          $('.pagination #prev')
+            .before(
+              '<li  class="page-item" data-page="' +
+                i +
+                '">\
+								  <span class="page-link">' +
+                i++ +
+                '<span class="sr-only">(current)</span></span>\
+								</li>'
+            )
+            .show();
+        } // end for i
+      } // end if row count > max rows
+      $('.pagination [data-page="1"]').addClass('active'); // add active class to the first li
+      $('.pagination li').on('click', function(evt) {
+        // on click each page
+        evt.stopImmediatePropagation();
+        evt.preventDefault();
+        var pageNum = $(this).attr('data-page'); // get it's number
+
+        var maxRows = parseInt($('#maxRows').val()); // get Max Rows from select option
+
+        if (pageNum == 'prev') {
+          if (lastPage == 1) {
+            return;
+          }
+          pageNum = --lastPage;
+        }
+        if (pageNum == 'next') {
+          if (lastPage == $('.pagination li').length - 2) {
+            return;
+          }
+          pageNum = ++lastPage;
+        }
+
+        lastPage = pageNum;
+        var trIndex = 0; // reset tr counter
+        $('.pagination li').removeClass('active'); // remove active class from all li
+        $('.pagination [data-page="' + lastPage + '"]').addClass('active'); // add active class to the clicked
+        // $(this).addClass('active');					// add active class to the clicked
+	  	limitPagging();
+        $(table + ' tr:gt(0)').each(function() {
+          // each tr in table not the header
+          trIndex++; // tr index counter
+          // if tr index gt maxRows*pageNum or lt maxRows*pageNum-maxRows fade if out
+          if (
+            trIndex > maxRows * pageNum ||
+            trIndex <= maxRows * pageNum - maxRows
+          ) {
+            $(this).hide();
+          } else {
+            $(this).show();
+          } //else fade in
+        }); // end of for each tr in table
+      }); // end of on click pagination list
+	  limitPagging();
+    })
+    .val(5)
+    .change();
+
+  // end of on select change
+
+  // END OF PAGINATION
+}
+
+function limitPagging(){
+	// alert($('.pagination li').length)
+
+	if($('.pagination li').length > 7 ){
+			if( $('.pagination li.active').attr('data-page') <= 3 ){
+			$('.pagination li:gt(5)').hide();
+			$('.pagination li:lt(5)').show();
+			$('.pagination [data-page="next"]').show();
+		}if ($('.pagination li.active').attr('data-page') > 3){
+			$('.pagination li:gt(0)').hide();
+			$('.pagination [data-page="next"]').show();
+			for( let i = ( parseInt($('.pagination li.active').attr('data-page'))  -2 )  ; i <= ( parseInt($('.pagination li.active').attr('data-page'))  + 2 ) ; i++ ){
+				$('.pagination [data-page="'+i+'"]').show();
+
+			}
+
+		}
+	}
+}
+
+$(function() {
+  // Just to append id number for each row
+  //$('table tr:eq(0)').prepend('<th> ID </th>');
+
+  //var id = 0;
+
+  //$('table tr:gt(0)').each(function() {
+    //id++;
+    //$(this).prepend('<td>' + id + '</td>');
+  //});
+});
+
+$(document).ready(function(){
+      // Read value on page load
+      $("#result b").html($("#customRange1").val());
+
+      // Read value on change
+      $("#customRange1").change(function(){
+          $("#result b").html($(this).val());});
+
+      //getPagination('#Tabla');
+      $('#maxRows option:first').prop('selected', true).trigger('change');
+
+      $("#myInput").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#myList tr").filter(function() {
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+      });
+    });
+
+        </script>
+
+      </div>
+    </div>
+ {% endblock %}

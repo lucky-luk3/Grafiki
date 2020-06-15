@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% block content_header %}
+    <h2>Files</h2>
+    <p>
+      <a href="{% url 'upload_file' %}" class="btn btn-primary">Upload file</a>
+    </p>
+  {% endblock %}
+  <table class="table mb-0">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Download</th>
+        <th>Delete</th>
+        <th>Process</th>
+        <th>Process Simple</th>
+        <th>Process Beat</th>
+        <th>Process BeatS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+        <tr>
+          <td>{{ file.name }}</td>
+          <td>
+            <a href="{{ file.evtx.url }}" class="btn btn-primary btn-sm" target="_blank">
+              Download EVTX
+            </a>
+          </td>
+          <td>
+          <form method="post" action="{% url 'delete_file' file.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+          </td>
+          <td>
+            <form method="post" action="{% url 'process_file' file.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm">Process</button>
+          </form>
+          </td>
+          <td>
+            <form method="post" action="{% url 'process_file_simple' file.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm">Process Simple</button>
+          </form>
+          </td>
+          <td>
+            <form method="post" action="{% url 'process_beat' file.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm">Process Beat</button>
+          </form>
+          </td>
+          <td>
+            <form method="post" action="{% url 'process_beat_simple' file.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm">Process BeatS</button>
+          </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

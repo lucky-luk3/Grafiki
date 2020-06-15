@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+  <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.css"
+    />
+    <style type="text/css">
+        #mynetwork {
+          height: 800px;
+        }
+      </style>
+    {% endblock %}
+    {% block body_label %}
+        <div>
+    {% endblock %}
+    {% block content %}
+        {% block content_header %}
+            <h2>Graph</h2>
+        {% endblock %}
+    <div class="panel-group" id="accordion">
+      <div>
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+            Filtros</a>
+          </h4>
+        </div>
+        <div id="collapse1" class="panel-collapse collapse in">
+          <div class="row align-items-start">
+          <div class="col">
+            <div class="card">
+              <h5>Process</h5>
+              <div id="process-filters">
+                <div>
+                  <a data-toggle="collapse" href="#integrity-filters" role="button" aria-expanded="false" aria-controls="collapseExample">
+                  Integrity
+                  </a>
+                  <div id="integrity-filters" class="collapse">
+                    {% for integrity in integrities %}
+                    <div class="checkbox">
+                      <label><input type="checkbox" name='nodesFilter' value='{{integrity.integritylevel}}'>{{integrity.integritylevel}}</label>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                <div>
+                  <a data-toggle="collapse" href="#sessions-filters" role="button" aria-expanded="false" aria-controls="collapseExample">
+                  Session
+                  </a>
+                  <div id="sessions-filters" class="collapse">
+                    {% for session in sessions %}
+                    <div class="checkbox">
+                      <label><input type="checkbox" value='{{session.terminalsessionid}}'>{{session.terminalsessionid}}</label>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                <div>
+                  <a data-toggle="collapse" href="#users-filters" role="button" aria-expanded="false" aria-controls="collapseExample">
+                  User
+                  </a>
+                  <div id="users-filters" class="collapse">
+                    {% for user in users %}
+                    <div class="checkbox">
+                      <label><input type="checkbox" value='{{user.user}}'>{{user.user}}</label>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                </div>
+              </div>
+            <button class="btn btn-primary" onclick="delete_group()">Delete Group</button>
+            <button class="btn btn-primary" onclick="delete_recursive()">Delete Group Recursive</button>
+          </div>
+          <div class="col">
+            <div class="card">
+              <h5>Actions</h5>
+              <div id="actions-filters">
+                <div class="row align-items-start">
+                <div class="col">
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="create" checked>Create</label>
+                  </div>
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="finish">Finish</label>
+                  </div>
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="access">Access</label>
+                  </div>
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="change">Change</label>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="delete">Delete</label>
+                  </div>
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="rename">Rename</label>
+                  </div>
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="connect">Connect</label>
+                  </div>
+                  <div class="checkbox">
+                    <label><input type="checkbox" name='edgesFilter' value="owned">Owned</label>
+                  </div>
+                </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+            <div class="col">
+              <div class="card">
+                <h5>Elements</h5>
+                <div id="elements-filters">
+                  <div class="row align-items-start">
+                    <div class="col">
+                      <div class="checkbox">
+                        <label><input type="checkbox" name='nodesFilter' value="process" checked>Process</label>
+                      </div>
+                      <div class="checkbox">
+                        <label><input type="checkbox" name='nodesFilter' value="thread" >Thread</label>
+                      </div>
+                      <div class="checkbox">
+                        <label><input type="checkbox" name='nodesFilter' value="connection" >Connection</label>
+                      </div>
+                      <div class="checkbox">
+                        <label><input type="checkbox" name='nodesFilter' value="file" >File</label>
+                      </div>
+                    </div>
+                    <div class="col">
+                      <div class="checkbox">
+                        <label><input type="checkbox" name='nodesFilter' value="pipe" >Pipe</label>
+                      </div>
+                      <div class="checkbox">
+                        <label><input type="checkbox" name='nodesFilter' value="registrykey" >RegistryKey</label>
+                      </div>
+                      <div class="checkbox">
+                        <label><input type="checkbox" name='nodesFilter' value="dnsquery" >DNSQuery</label>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+      </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <div id="mynetwork">
+  </div>
+  <div>
+    <pre id="eventSpan"></pre>
+  </div>
+  <div class="panel-heading">
+    <h4 class="panel-title">
+      <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+      Settings</a>
+    </h4>
+  </div>
+  <div id="collapse2" class="panel-collapse collapse in">
+    <div id="myoptions"></div>
+  </div>
+  <script type="text/javascript">
+
+    function delete_group(){
+      node_id = network.getSelectedNodes()
+      arrayOfParents = network.getConnectedNodes(node_id, 'to')
+      arrayOfParents.forEach(delete_node)
+      if(isNaN(node_id)){
+          nodes.remove(node_id)
+        }
+      else{ nodes.remove(parseInt(node_id))}
+
+      function delete_node(value){
+        if(isNaN(value)){
+          nodes.remove(value)
+        }
+        else{ nodes.remove(parseInt(value))}
+      }
+    }
+
+    function delete_recursive(){
+      node_id = network.getSelectedNodes()
+      delete_group_recursive(node_id)
+    }
+
+    function delete_group_recursive(value){
+      arrayOfParents = network.getConnectedNodes(value, 'to')
+      console.log("Array: " + arrayOfParents)
+      arrayOfParents.forEach(delete_group_recursive)
+      if(isNaN(value)){
+          nodes.remove(value)
+        }
+      else{ nodes.remove(parseInt(value))}
+    }
+
+
+
+    const nodeFilters = document.getElementsByName('nodesFilter')
+    const edgeFilters = document.getElementsByName('edgesFilter')
+
+    function startNetwork(data) {
+      const container = document.getElementById('mynetwork')
+      var options = {
+            interaction:{hover:true},
+			manipulation: {
+				enabled: true,
+				addEdge: true,
+				editEdge: true,
+				addNode: true,
+				deleteNode: true,
+				deleteEdge: true
+			},
+        autoResize: true,
+        height:'100%',
+        width: '100%',
+        edges:{
+          arrowStrikethrough: false
+        },
+        nodes:{
+          shape:'box',
+          shapeProperties: {
+            interpolation: false    // 'true' for intensive zooming
+          },
+          scaling: {
+            customScalingFunction: function (min,max,total,value) {
+              return value/total;
+            },
+            min:1,
+            max:10
+          }
+        },
+        configure: {
+          enabled: true,
+          filter: 'physics, nodes',
+          container: myoptions,
+          showButton: true
+        },
+        layout: {
+          improvedLayout: true
+        },
+        physics:{
+          enabled: true,
+          minVelocity: 0.75,
+          stabilization:false,
+          solver: "barnesHut",
+          barnesHut: {
+            gravitationalConstant: -2000,
+            centralGravity: 0.3,
+            springLength: 95,
+            springConstant: 0.04,
+            damping: 0.09,
+            avoidOverlap: 0
+          }
+        },
+        groups: {
+            process: {
+                color: {background:'#97C2FC',border:'blue'}
+            },
+            thread: {
+                color: {background:'#FB7E80',border:'green'}  //error en la forma y en la etiqueta
+            },
+            file: {
+                color: {background:'#FB7E81',border:'red',shape: 'box'}
+            },
+            connection: {
+                color: {background:'#FFFF00',border:'yellow',shape: 'diamond'}
+            },
+            pipe: {
+                color: {background:'#33FFFC',border:'orange',shape: 'diamond'}
+            },
+            access: {
+                color: 'red'
+            }
+         }
+      }
+      return new vis.Network(container, data, options)
+    }
+
+    /**
+     * In this example we do not mutate nodes or edges source data.
+     */
+    //const nodes = new vis.DataSet([])
+
+    //const edges = new vis.DataSet([])
+
+    /**
+     * filter values are updated in the outer scope.
+     * in order to apply filters to new values, DataView.refresh() should be called
+     */
+    let nodeFilterValue = ''
+    const edgesFilterValues = {
+      create: true,
+      finish: false,
+      access: false,
+      change: false,
+      delete: false,
+      rename: false,
+      connect: false,
+      owned: false
+    }
+    const nodesFilterValues = {
+      process: true,
+      file: false,
+      thread: false,
+      connection: false,
+      pipe: false,
+      registrykey: false,
+      ndsquery: false
+    }
+
+    /*
+      filter function should return true or false
+      based on whether item in DataView satisfies a given condition.
+    */
+
+    const nodesFilter = (node) => {
+      //console.log(node.group)
+      return nodesFilterValues[node.group]
+    }
+    const edgesFilter = (edge) => {
+      return edgesFilterValues[edge.group]
+    }
+    var n = {{ edges | safe}};
+    var edges = new vis.DataSet(n);
+    var m = {{ nodes | safe}};
+    var nodes = new vis.DataSet(m);
+
+
+    const edgesView = new vis.DataView(edges, { filter: edgesFilter })
+    const nodesView = new vis.DataView(nodes, { filter: nodesFilter })
+    /*
+    function(node) {
+            //node = nodesFilterValues[node.group]
+            connEdges = edgesView.get({
+                filter: function(edge) {
+                    return(
+                        (edge.to == node.id) || (edge.from == node.id));
+                }});
+            return nodesFilterValues[node.group], connEdges.length > 0 ;
+        }})*/
+
+    nodeFilters.forEach(filter => filter.addEventListener('change', (e) => {
+      const { value, checked } = e.target
+      nodesFilterValues[value] = checked
+      nodesView.refresh()
+    }))
+
+    edgeFilters.forEach(filter => filter.addEventListener('change', (e) => {
+      const { value, checked } = e.target
+      edgesFilterValues[value] = checked
+      edgesView.refresh()
+    }))
+
+
+    var network = startNetwork({ nodes: nodesView, edges: edgesView })
+
+    network.on("hoverNode", function (params) {
+        //document.getElementById('eventSpan').innerHTML = '<h2>showPopup event: </h2>' + JSON.stringify(params, null, 4);
+        console.log('showPopup Event');
+    });
+    network.on("blurNode", function () {
+        console.log('hidePopup Event');
+    });
+    network.on("click", function (params) {
+        params.event = "[original event]";
+        var node_id = this.getNodeAt(params.pointer.DOM)
+        var edge_id = this.getEdgeAt(params.pointer.DOM)
+        if (node_id){
+          node = nodes.get(node_id)
+          console.log('item1', node);
+          if (node.group == 'process'){
+            fetch('http://127.0.0.1:8000/api/v1/processes/?processguid=' + node_id)
+              .then(function(response) {
+                return response.json();
+              })
+              .then(function(myJson) {
+                //console.log(myJson[0]['processguid']);
+                document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Process Info:</h2>'
+                + JSON.stringify(myJson, null, 4) + '</div>';
+                //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+              })
+          }
+          else if (node.group == 'file'){
+            fetch('http://127.0.0.1:8000/api/v1/files/?filename=' + node_id)
+              .then(function(response) {
+                return response.json();
+              })
+              .then(function(myJson) {
+                console.log(myJson[0]['filename']);
+                document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>File Info:</h2>'
+                + JSON.stringify(myJson, null, 4) + '</div>';
+                //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+              })
+          }
+          else if (node.group == 'thread'){
+            fetch('http://127.0.0.1:8000/api/v1/threads/?threadid=' + node_id)
+              .then(function(response) {
+                return response.json();
+              })
+              .then(function(myJson) {
+                console.log(myJson[0]['threadid']);
+                document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Thread Info:</h2>'
+                + JSON.stringify(myJson, null, 4) + '</div>';
+                //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+              })
+          }
+          else if (node.group == 'connection'){
+            fetch('http://127.0.0.1:8000/api/v1/connections/?connectionid=' + node_id)
+              .then(function(response) {
+                return response.json();
+              })
+              .then(function(myJson) {
+                console.log(myJson[0]['connectionid']);
+                document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Connection Info:</h2>'
+                + JSON.stringify(myJson, null, 4) + '</div>';
+                //console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
+              })
+          }
+        }
+        else if (edge_id){
+          edge = edges.get(edge_id)
+          console.log('Edge', edge);
+          fetch('http://127.0.0.1:8000/api/v1/actions/?action_id=' + edge_id)
+              .then(function(response) {
+                return response.json();
+              })
+              .then(function(myJson) {
+                console.log(myJson[0]['action_id']);
+                document.getElementById('eventSpan').innerHTML = '<div class="card"><h2>Action Info:</h2>'
+                + JSON.stringify(myJson, null, 4) + '</div>';
+                //console.log('click event, getNodeAt returns: ' + this.getEdgeAt(params.pointer.DOM));
+              })
+        }
+
+    });
+
+
+
+  </script>
+
+ {% endblock %}
