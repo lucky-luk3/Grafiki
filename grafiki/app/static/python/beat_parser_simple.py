@@ -20,6 +20,7 @@ def insert_process(cursor, event):
                             event["event_data"]["Image"])
     cursor.execute(query_process)
 
+
 def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", options=""):
     import time
     cursor = sql_connection()
@@ -32,7 +33,8 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
     threads_inserted = []
     start = time.time()
     if not es:
-        f = path
+        f = open(path,)
+
     else:
         if date_to and date_from:
             if filters:
@@ -111,7 +113,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                                         event["event_data"]["TerminalSessionId"])
                         cursor.execute(query_user)
                     except Exception as e:
-                        logger.error("Error 1: " + str(e) + " Event: " + str(query_user))
+                        print("Error 1: " + str(e) + " Event: " + str(query_user))
 
                 # Network connection
                 if event["event_id"] == 3:
@@ -136,7 +138,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                                             event["event_data"]["DestinationPort"])
                         cursor.execute(query_connection)
                     except Exception as e:
-                        logger.error("Error query_connection 3: " + str(e) + " Event: " + str(query_connection))
+                        print("Error query_connection 3: " + str(e) + " Event: " + str(query_connection))
 
                     try:
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","LogonGuid","DestinationId",' \
@@ -149,12 +151,12 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                                         event["event_data"]["Initiated"])
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 3: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 3: " + str(e) + " Event: " + str(query_action))
 
                     try:
                         insert_process(cursor, event)
                     except Exception as e:
-                        logger.error("Error query_pprocess_exist 3: " + str(e) + " Event: " + str(event))
+                        print("Error query_pprocess_exist 3: " + str(e) + " Event: " + str(event))
 
                 # Process Terminated
                 if event["event_id"] == 5:
@@ -167,7 +169,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                         cursor.execute(query_process)
 
                     except Exception as e:
-                        logger.error("Error query_sprocess 5: " + str(e) + " Event: " + str(query_process))
+                        print("Error query_sprocess 5: " + str(e) + " Event: " + str(query_process))
 
                     try:  # Action
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -178,7 +180,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             (event["event_data"]["Image"]).lower())
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 5: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 5: " + str(e) + " Event: " + str(query_action))
 
                 #  Kernel driver loaded
                 if event["event_id"] == 6:
@@ -189,7 +191,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                     try:  # Process
                         insert_process(cursor, event)
                     except Exception as e:
-                        logger.error("Error query_sprocess 7: " + str(e) + " Event: " + str(query_sprocess))
+                        print("Error query_sprocess 7: " + str(e) + " Event: " + str(query_sprocess))
 
                     try:  # File
                         if "Description" not in event["event_data"]:
@@ -219,7 +221,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             event["event_data"]["SignatureStatus"])
                         cursor.execute(query_file)
                     except Exception as e:
-                        logger.error("Error query_file 7: " + str(e) + " Event: " + str(query_file))
+                        print("Error query_file 7: " + str(e) + " Event: " + str(query_file))
 
                     try:  # Action
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -230,7 +232,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             (event["event_data"]["Image"]).lower())
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 7: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 7: " + str(e) + " Event: " + str(query_action))
 
                 # Create Remote Thread
                 if event["event_id"] == 8:
@@ -275,7 +277,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                         cursor.execute(query_thread)
 
                     except Exception as e:
-                        logger.error("Error query_thread 8: " + str(e) + " Event: " + str(query_thread))
+                        print("Error query_thread 8: " + str(e) + " Event: " + str(query_thread))
 
                     try:  # Action
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -286,7 +288,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             thread_key)
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 8: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 8: " + str(e) + " Event: " + str(query_action))
 
                 # Raw access read
                 if event["event_id"] == 9:
@@ -313,6 +315,46 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                         cursor.execute(query_tprocess)
                     except Exception as e:
                         logger.error("Error query_tprocess 10: " + str(e) + " Event: " + str(query_tprocess))
+                    """
+                    try:  # File - Actions
+                        dlls = str(event["event_data"]["CallTrace"]).split("|")
+                        for dll in dlls:
+                            path = dll.split("+")
+                            if (path[0]).lower() not in (event["event_data"]["SourceImage"]).lower():
+                                query_file = 'INSERT INTO public."Files" ("Filename") ' \
+                                               "VALUES ('{}') ON CONFLICT DO NOTHING;".format(
+                                                "f:" + str(path[0]).lower())
+                                cursor.execute(query_file)
+
+                                query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
+                                               " VALUES ('{}','{}','{}','{}');".format(
+                                    event["event_data"]["UtcTime"],
+                                    "LoadImage",
+                                    "f:" + str(path[0]).lower(),
+                                    (event["event_data"]["SourceImage"]).lower())
+                                cursor.execute(query_action)
+
+                    except Exception as e:
+                        print("Error query_file 10: " + str(e) + " Event: " + str(query_file))
+
+
+
+                    try:  # Thread
+                        thread = str(event["event_data"]["SourceThreadId"]) + str(event["event_data"]["SourceProcessGUID"])
+                        if thread not in threads_inserted:
+                            thread_key += 1
+                            query_thread = 'INSERT INTO public."Threads" ("ThreadId","ThreadNId","ProcessGuid")' \
+                                           " VALUES ({},{},'{}') ON CONFLICT DO NOTHING;".format(
+                                            thread_key,
+                                            event["event_data"]["SourceThreadId"],
+                                            event["event_data"]["SourceProcessGUID"])
+                            cursor.execute(query_thread)
+                            threads_inserted.append(thread)
+                        else:
+                            logger.info("Thread duplicate")
+                    except Exception as e:
+                        print("Error query_thread 10: " + str(e) + " Event: " + str(query_thread))
+                    """
                     try:
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId",' \
                                        '"ExtraInfo","ExtraInfo2")' \
@@ -332,7 +374,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                     try:  # Process
                         insert_process(cursor, event)
                     except Exception as e:
-                        logger.error("Error query_sprocess 11: " + str(e) + " Event: " + str(event["Event"]))
+                        print("Error query_sprocess 11: " + str(e) + " Event: " + str(event["Event"]))
 
                     try:  # File
                         query_file = 'INSERT INTO public."Files" ("Filename","CreationUtcTime") ' \
@@ -341,7 +383,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             event["event_data"]["CreationUtcTime"])
                         cursor.execute(query_file)
                     except Exception as e:
-                        logger.error("Error query_file 11: " + str(e) + " Event: " + str(query_file))
+                        print("Error query_file 11: " + str(e) + " Event: " + str(query_file))
 
                     try:  # Action
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -352,7 +394,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             "f:" + str(event["event_data"]["TargetFilename"]).lower())
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 11: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 11: " + str(e) + " Event: " + str(query_action))
 
                 # Registry Key Operation
                 if event["event_id"] == 12 or event["event_id"] == 13 \
@@ -365,7 +407,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                     try:  # Process
                         insert_process(cursor, event)
                     except Exception as e:
-                        logger.error("Error query_process 12-13-14: " + str(e) + " Event: " + str(event["Event"]))
+                        print("Error query_process 12-13-14: " + str(e) + " Event: " + str(event["Event"]))
 
                     try:  # RegistryKey
                         if event["event_id"] == 13:
@@ -383,7 +425,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                                 event["event_data"]["TargetObject"])
                         cursor.execute(query_key)
                     except Exception as e:
-                        logger.error("Error query_key 12-13-14: " + str(e) + " Event: " + str(query_key))
+                        print("Error query_key 12-13-14: " + str(e) + " Event: " + str(query_key))
 
                     try:  # Action
                         if "SetValue" in event["event_data"]["EventType"]:
@@ -403,7 +445,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                                 event["event_data"]["TargetObject"])
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 12-13-14: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 12-13-14: " + str(e) + " Event: " + str(query_action))
 
                 #  File create stream hash
                 if event["event_id"] == 15:
@@ -422,7 +464,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                     try:
                         insert_process(cursor, event)
                     except Exception as e:
-                        logger.error("Error insert_process 17-18: " + str(e) + " Event: " + str(event["Event"]))
+                        print("Error insert_process 17-18: " + str(e) + " Event: " + str(event["Event"]))
 
                     try:  # Pipe
                         if event["event_data"]["PipeName"] not in pipes_inserted:
@@ -432,7 +474,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             cursor.execute(query_pipe)
                             pipes_inserted.append(event["event_data"]["PipeName"])
                     except Exception as e:
-                        logger.error("Error query_file 17-18: " + str(e) + " Event: " + str(query_pipe))
+                        print("Error query_file 17-18: " + str(e) + " Event: " + str(query_pipe))
 
                     try:  # Action
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -443,7 +485,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             event["event_data"]["PipeName"])
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 17-18: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 17-18: " + str(e) + " Event: " + str(query_action))
 
                 # WMI event
                 if event["event_id"] == 19 or event["event_id"] == 20 \
@@ -455,7 +497,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                     try:
                         insert_process(cursor, event)
                     except Exception as e:
-                        logger.error("Error insert_process 22: " + str(e) + " Event: " + str(event["Event"]))
+                        print("Error insert_process 22: " + str(e) + " Event: " + str(event["Event"]))
 
                     try:  # Query
                         query_dnsquery = 'INSERT INTO public."DNSQuery" ("QueryName") ' \
@@ -463,7 +505,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             event["event_data"]["QueryName"])
                         cursor.execute(query_dnsquery)
                     except Exception as e:
-                        logger.error("Error query_file 22: " + str(e) + " Event: " + str(query_dnsquery))
+                        print("Error query_file 22: " + str(e) + " Event: " + str(query_dnsquery))
 
                     try:  # Resolution
                         query_dnsresolution = 'INSERT INTO public."DNSResolution" ("UtcTime","QueryName","QueryStatus","QueryResults") ' \
@@ -474,7 +516,7 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             event["event_data"]["QueryResults"])
                         cursor.execute(query_dnsresolution)
                     except Exception as e:
-                        logger.error("Error query_file 22: " + str(e) + " Event: " + str(query_dnsresolution))
+                        print("Error query_file 22: " + str(e) + " Event: " + str(query_dnsresolution))
 
                     try:  # Action
                         query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -485,7 +527,8 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                             event["event_data"]["QueryName"])
                         cursor.execute(query_action)
                     except Exception as e:
-                        logger.error("Error query_action 22: " + str(e) + " Event: " + str(query_action))
+                        print("Error query_action 22: " + str(e) + " Event: " + str(query_action))
+            """
             elif "Microsoft-Windows-PowerShell/Operational" in event["log_name"]:
                 # print("entra en power beat")
                 try:
@@ -500,6 +543,8 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                         event["event_data"]["param"] = str(
                             event["event_data"]["param"]).replace('"', "\"")
 
+                    # root | Error query_psevent: 'application' query_psevent:
+
                     query_psevent = 'INSERT INTO public."PSEvents" ("event_id","UtcTime","application","param", "computer_name")' \
                                     " VALUES ('{}','{}','{}','{}','{}') ON CONFLICT DO NOTHING;".format(
                         event["event_id"],
@@ -510,10 +555,11 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                     cursor.execute(query_psevent)
                 except Exception as e:
                     logger.error("Error query_psevent: " + str(e) + " query_psevent: " + str(event))
+        """
         else:
             print("Invalid format")
             break
 
     cursor.close()
     end = time.time()
-    logger.info("Time to process file %s seconds ---" % (end - start))
+    print("Time to process file %s seconds ---" % (end - start))

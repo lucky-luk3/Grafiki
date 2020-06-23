@@ -30,17 +30,17 @@ def sql_execute_select(con, query):
     return rows
 
 def sql_initialitation(cursor):
-    cursor.execute('DELETE from public."Processes";')
-    cursor.execute('DELETE from public."Actions";')
-    cursor.execute('DELETE from public."Connections";')
-    cursor.execute('DELETE from public."DNSQuery";')
-    cursor.execute('DELETE from public."DNSResolution";')
-    cursor.execute('DELETE from public."Files";')
-    cursor.execute('DELETE from public."Pipes";')
-    cursor.execute('DELETE from public."RegistryKeys";')
-    cursor.execute('DELETE from public."Threads";')
-    cursor.execute('DELETE from public."Users";')
-    cursor.execute('DELETE from public."PSEvents";')
+    cursor.execute('DELETE from "Processes";')
+    cursor.execute('DELETE from "Actions";')
+    cursor.execute('DELETE from "Connections";')
+    cursor.execute('DELETE from "DNSQuery";')
+    cursor.execute('DELETE from "DNSResolution";')
+    cursor.execute('DELETE from "Files";')
+    cursor.execute('DELETE from "Pipes";')
+    cursor.execute('DELETE from "RegistryKeys";')
+    cursor.execute('DELETE from "Threads";')
+    cursor.execute('DELETE from "Users";')
+    cursor.execute('DELETE from "PSEvents";')
 
 def sql_todisk(con, path):
     if os.path.exists('databases/'+path):

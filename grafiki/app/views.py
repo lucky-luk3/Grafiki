@@ -31,19 +31,20 @@ class Home(TemplateView):
     template_name = 'home.html'
 
 class Graph(TemplateView):
-    template_name = 'graph2.html'
+    template_name = 'graph.html'
 
 class Upload_file(TemplateView):
     template_name = 'upload_file.html'
 
 
 def graph_list(request):
-    psevents = PSEvents.objects.all()
-    for event in psevents:
-        event.utctime = event.utctime.strftime("%Y-%m-%d %H:%M:%S.%f")
+    #psevents = PSEvents.objects.all()
+    #for event in psevents:
+        #event.utctime = event.utctime.strftime("%Y-%m-%d %H:%M:%S.%f")
     sessions = Processes.objects.order_by().values('terminalsessionid').distinct()
     integrities = Processes.objects.order_by().values('integritylevel').distinct()
     users = Processes.objects.order_by().values('user').distinct()
+    #actions = Actions.objects.order_by().values('actiontype').distinct()
     edges_actions = actions_to_edges(request)
     edges_threads = threads_to_edges(request)
     edges_dnsresolutions = dnsresolutions_to_edges(request)
@@ -65,8 +66,8 @@ def graph_list(request):
         'integrities': integrities,
         'users':users,
         'edges':data_edges,
-        'nodes':data_nodes,
-        'psevents':psevents
+        'nodes':data_nodes
+        #'psevents':psevents
     })
 
 def upload_file(request):
@@ -99,41 +100,65 @@ def delete_example(request, pk):
 def process_file(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
+        #if not file.processed:
+        #print("File not processed jet: " + str(file.processed))
         parser(file.evtx, str(file.name) + ".db")
         file.processed = True
         file.save()
+        #else:
+        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 def process_beat_simple(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
+        #if not file.processed:
+        #print("File not processed jet: " + str(file.processed))
         beat_parser_simple(file.evtx)
         file.processed = True
         file.save()
+        #else:
+        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 def process_beat(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
+        #if not file.processed:
+        #print("File not processed jet: " + str(file.processed))
         beat_parser(file.evtx)
         file.processed = True
         file.save()
+        #else:
+        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 def process_example(request, pk):
     if request.method == 'POST':
         example = Example.objects.get(pk=pk)
         url = example.url
-        path = "media\\app\\evtx\\" + str(example.name) + ".evtx"
-        if os.path.isfile(path):
-            print("Exist")
-        else:
-            urllib.request.urlretrieve(url, path)
-        parser(path)
+        ext = url.split(".")[-1:][0]
+        if "gz" in ext:
+            ext = ".".join(url.split(".")[-2:])
+        path = "media/app/evtx/" + str(example.name) + "." + str(ext)
+        urllib.request.urlretrieve(url, path)
+        if "evtx" in ext:
+            parser(path)
+        elif "tar.gz" in ext:
+            import shutil
+            output_path = "media/app/evtx"
+            # file_path = "media/app/evtx/" + str(example.name) + ".json"
+            shutil.unpack_archive(path, output_path)
+            for file in os.listdir(output_path):
+                if file.startswith(example.name) and file.endswith(".json"):
+                    beat_parser(output_path + "/" + file)
+                    # Cuando el formato no es valido, tiene que devolver algo y no lanzar grafo
     return redirect(graph_list)
 
 def examples_list(request):
     examples = Example.objects.all()
+    if not examples:
+        examples = []
     return render(request, 'examples_list.html', {
         'examples': examples
     })
@@ -144,6 +169,7 @@ def elastic_form(request):
 
         date_from = request.POST['from']
         date_to = request.POST['to']
+        #print(request.POST)
         if "elements" in request.POST:
             filters = {}
             l = len(request.POST.getlist('elements'))
@@ -173,18 +199,34 @@ def process_example_simple(request, pk):
     if request.method == 'POST':
         example = Example.objects.get(pk=pk)
         url = example.url
-        path = str(example.name) + ".evtx"
+        ext = url.split(".")[-1:][0]
+        if "gz" in ext:
+            ext = ".".join(url.split(".")[-2:])
+        path = "media/app/evtx/" + str(example.name) + "." + str(ext)
         urllib.request.urlretrieve(url, path)
-        parser_simple(path)
+        if "evtx" in ext:
+            parser_simple(path)
+        elif "tar.gz" in ext:
+            import shutil
+            output_path = "media/app/evtx"
+            #file_path = "media/app/evtx/" + str(example.name) + ".json"
+            shutil.unpack_archive(path, output_path)
+            for file in os.listdir(output_path):
+                if file.startswith(example.name) and file.endswith(".json"):
+                    beat_parser_simple(output_path + "/" + file)
+                    # Cuando el formato no es valido, tiene que devolver algo y no lanzar grafo
     return redirect(graph_list)
 
 def process_file_simple(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
+        #if not file.processed:
         print("File not processed jet: " + str(file.processed))
         parser_simple(file.evtx, str(file.name) + ".db")
         file.processed = True
         file.save()
+        #else:
+        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 class FileListView(ListView):
@@ -263,6 +305,7 @@ def actions_to_edges(request):
                 edge["group"] = "access"
                 edge["color"] = 'purple'
                 access_added.append(str(action.processguid) + str(action.destinationid))
+                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("access" in edge["group"]) :
@@ -275,6 +318,7 @@ def actions_to_edges(request):
                 edge["group"] = "change"
                 edge["color"]= 'orange'
                 registry_key_added.append(str(action.processguid) + str(action.destinationid))
+                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("RegistryKey-SetValue" in edge["group"]) :
@@ -287,6 +331,7 @@ def actions_to_edges(request):
                 edge["group"] = "delete"
                 edge["color"]= 'red'
                 delete_added.append(str(action.processguid) + str(action.destinationid))
+                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("Delete" in edge["group"]) :
@@ -299,6 +344,7 @@ def actions_to_edges(request):
                 edge["group"] = "finish"
                 edge["color"]= 'red'
                 delete_added.append(str(action.processguid) + str(action.destinationid))
+                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("access" in edge["group"]) :
@@ -311,6 +357,7 @@ def actions_to_edges(request):
                 edge["group"] = "load"
                 edge["color"]= 'grey'
                 load_added.append(str(action.processguid) + str(action.destinationid))
+                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("load" in edge["group"]) :
@@ -343,6 +390,7 @@ def threads_to_edges(request):
                 for action in action_source:
                     ids.append(action.action_id)
                 ids.sort()
+                #print(ids)
                 for action in action_source:
                     if action.action_id == ids[0]:
                         edge["utctime"] = (action.utctime).strftime("%d/%m/%Y %H:%M:%S.%f")
@@ -403,6 +451,7 @@ def process_to_edges(request):
                 for action in action_source:
                     ids.append(action.action_id)
                 ids.sort()
+                #print(ids)
                 for action in action_source:
                     if action.action_id == ids[0]:
                         edge["utctime"] = (action.utctime).strftime("%d/%m/%Y %H:%M:%S.%f")
@@ -414,6 +463,7 @@ def process_to_edges(request):
                     break
 
             edges.append(edge)
+            #print(edges)
     return (edges)
 
 def process_to_nodes(request):
@@ -431,6 +481,9 @@ def process_to_nodes(request):
         label = (process.image).split("\\")[-1]
         node["label"] = label
         node["title"] = str(process.image)
+        #node["shape"] = 'image'
+        #node["image"] = DIR + 'letter-p.png'
+        #node["view"] = "simple"
         nodes.append(node)
 
 
@@ -477,6 +530,9 @@ def files_to_nodes(request):
             label = (file.filename).split("\\")[-1]
             node["label"] = label
             node["title"] = str(file.filename)
+            #node["shape"] = 'image'
+            #node["image"] = DIR + 'paper.png'
+            #node["view"] = "simple"
             nodes.append(node)
             files_added.append(str(file.filename).lower())
 
@@ -505,6 +561,7 @@ def threads_to_nodes(request):
         node["group"] = "thread"
         node["process"] = thread.processguid
         node["title"] = thread.threadnid
+        #node["view"] = "simple"
         nodes.append(node)
 
 

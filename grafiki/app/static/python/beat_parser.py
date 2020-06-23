@@ -21,7 +21,6 @@ def insert_process(cursor, event):
     cursor.execute(query_process)
 
 def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""):
-    #print("complete")
     import time
     cursor = sql_connection()
     sql_initialitation(cursor)
@@ -33,7 +32,7 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
     threads_inserted = []
     start = time.time()
     if not es:
-        f = path
+        f = open(path,)
     else:
         if date_to and date_from:
             if filters:
@@ -88,8 +87,8 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                                             event["event_data"]["Description"], event["event_data"]["Product"],
                                             event["event_data"]["Company"],
                                             original)
-                            cursor.execute(query_file)
-                            files_inserted.append(event["event_data"]["Image"])
+                            # cursor.execute(query_file)
+                            # files_inserted.append(event["event_data"]["Image"])
 
                     except Exception as e:
                         logger.error("Error query_file 1: " + str(e) + " Event: " + str(event["Event"]))
@@ -290,25 +289,24 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                         print("Error query_tprocess 8: " + str(e) + " Event: " + str(query_tprocess))
 
                     try:  # Thread
-                        # thread = str(event["event_data"]["NewThreadId"]) + str(event["event_data"]["TargetProcessGuid"])
-                        # if thread not in threads_inserted:
                         thread_key = str(event["event_data"]["TargetProcessGuid"]) + ":" + str(
                             event["event_data"]["NewThreadId"])
-                        query_thread = 'INSERT INTO public."Threads" ("ThreadId","ThreadNId","ProcessGuid","StartAddress",' \
-                                       '"StartModule", "StartFunction")' \
-                                       " VALUES ('{}',{},'{}','{}','{}','{}') ON CONFLICT " \
-                                       '("ThreadId") DO UPDATE SET "StartAddress" = ' \
-                                       'EXCLUDED."StartAddress", "StartModule"' \
-                                       ' = EXCLUDED."StartModule", "StartFunction"' \
-                                       ' = EXCLUDED."StartFunction";'.format(
-                                        thread_key,
-                                        event["event_data"]["NewThreadId"],
-                                        event["event_data"]["TargetProcessGuid"],
-                                        event["event_data"]["StartAddress"],
-                                        event["event_data"]["StartModule"],
-                                        event["event_data"]["StartFunction"])
-                        cursor.execute(query_thread)
-                        # threads_inserted.append(thread)
+                        if thread_key not in threads_inserted:
+                            query_thread = 'INSERT INTO public."Threads" ("ThreadId","ThreadNId","ProcessGuid","StartAddress",' \
+                                           '"StartModule", "StartFunction")' \
+                                           " VALUES ('{}',{},'{}','{}','{}','{}') ON CONFLICT " \
+                                           '("ThreadId") DO UPDATE SET "StartAddress" = ' \
+                                           'EXCLUDED."StartAddress", "StartModule"' \
+                                           ' = EXCLUDED."StartModule", "StartFunction"' \
+                                           ' = EXCLUDED."StartFunction";'.format(
+                                            thread_key,
+                                            event["event_data"]["NewThreadId"],
+                                            event["event_data"]["TargetProcessGuid"],
+                                            event["event_data"]["StartAddress"],
+                                            event["event_data"]["StartModule"],
+                                            event["event_data"]["StartFunction"])
+                            cursor.execute(query_thread)
+                            threads_inserted.append(thread_key)
                     except Exception as e:
                         print("Error query_thread 8: " + str(e) + " Event: " + str(query_thread))
 
@@ -354,7 +352,6 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                     try:  # File - Actions
                         dlls = str(event["event_data"]["CallTrace"]).split("|")
                         for dll in dlls:
-                            # print(dll)
                             path = dll.split("+")
                             if (path[0]).lower() not in (event["event_data"]["SourceImage"]).lower():
                                 query_file = 'INSERT INTO public."Files" ("Filename") ' \
@@ -376,13 +373,14 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                     try:  # Thread
                         thread_key = str(event["event_data"]["SourceProcessGUID"]) + ":" + str(
                             event["event_data"]["SourceThreadId"])
-                        query_thread = 'INSERT INTO public."Threads" ("ThreadId","ThreadNId","ProcessGuid")' \
-                                       " VALUES ('{}','{}','{}') ON CONFLICT DO NOTHING;".format(
-                                        thread_key,
-                                        event["event_data"]["SourceThreadId"],
-                                        event["event_data"]["SourceProcessGUID"])
-                        cursor.execute(query_thread)
-                        # threads_inserted.append(thread)
+                        if thread_key not in threads_inserted:
+                            query_thread = 'INSERT INTO public."Threads" ("ThreadId","ThreadNId","ProcessGuid")' \
+                                           " VALUES ('{}','{}','{}') ON CONFLICT DO NOTHING;".format(
+                                            thread_key,
+                                            event["event_data"]["SourceThreadId"],
+                                            event["event_data"]["SourceProcessGUID"])
+                            cursor.execute(query_thread)
+                            threads_inserted.append(thread_key)
                     except Exception as e:
                         print("Error query_thread 10: " + str(e) + " Event: " + str(query_thread))
 
@@ -434,6 +432,7 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                 # Registry Key Operation
                 if event["event_id"] == 12 or event["event_id"] == 13 \
                         or event["event_id"] == 14:
+
                     if event["event_data"]["TargetObject"]:
                         event["event_data"]["TargetObject"] = str(
                             event["event_data"]["TargetObject"]).replace("'", "\"")
@@ -562,7 +561,9 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                         cursor.execute(query_action)
                     except Exception as e:
                         print("Error query_action 22: " + str(e) + " Event: " + str(query_action))
+            """
             elif "Microsoft-Windows-PowerShell/Operational" in event["log_name"]:
+                #print("entra en power beat")
                 try:
                     if event["event_data"]["application"]:
                         event["event_data"]["application"] = str(
@@ -585,10 +586,11 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                     cursor.execute(query_psevent)
                 except Exception as e:
                     logger.error("Error query_psevent: " + str(e) + " query_psevent: " + str(event))
+        """
         else:
             print("Invalid format")
 
 
     cursor.close()
     end = time.time()
-    logger.info("Time to process file %s seconds ---" % (end - start))
+    print("Time to process file %s seconds ---" % (end - start))
