@@ -288,7 +288,7 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('sysmon_1_7_11_mcx2prov_uacbypass','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/sysmon_1_7_11_mcx2prov_uacbypass.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
     ('sysmon_1_7_11_migwiz','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/sysmon_1_7_11_migwiz.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
     ('sysmon_1_7_11_sysprep_uacbypass','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/sysmon_1_7_11_sysprep_uacbypass.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
-    ('sysmon_1_7_elevate_uacbypass_sysprep','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/sysmon_1_7_elevate_uacbypass_sysprep.evtx','Privilege_Escalation'),
+    ('sysmon_1_7_elevate_uacbypass_sysprep','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/sysmon_1_7_elevate_uacbypass_sysprep.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
     ('sysmon_privesc_from_admin_to_system_handle_inheritance','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/sysmon_privesc_from_admin_to_system_handle_inheritance.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
     ('empire_invoke_runas','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/privilege_escalation/empire_invoke_runas.tar.gz','https://github.com/hunters-forge/mordor','Privilege_Escalation')
 ;

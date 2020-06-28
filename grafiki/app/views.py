@@ -124,6 +124,7 @@ def process_example(request, pk):
             ext = ".".join(url.split(".")[-2:])
         path = "media/app/evtx/" + str(example.name) + "." + str(ext)
         urllib.request.urlretrieve(url, path)
+        output_path = ""
         if "evtx" in ext:
             parser(path)
         elif "tar.gz" in ext:
