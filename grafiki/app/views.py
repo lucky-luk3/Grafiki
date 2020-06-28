@@ -100,37 +100,19 @@ def delete_example(request, pk):
 def process_file(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
-        #if not file.processed:
-        #print("File not processed jet: " + str(file.processed))
         parser(file.evtx, str(file.name) + ".db")
-        file.processed = True
-        file.save()
-        #else:
-        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 def process_beat_simple(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
-        #if not file.processed:
-        #print("File not processed jet: " + str(file.processed))
         beat_parser_simple(file.evtx)
-        file.processed = True
-        file.save()
-        #else:
-        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 def process_beat(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
-        #if not file.processed:
-        #print("File not processed jet: " + str(file.processed))
         beat_parser(file.evtx)
-        file.processed = True
-        file.save()
-        #else:
-        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 def process_example(request, pk):
@@ -147,12 +129,14 @@ def process_example(request, pk):
         elif "tar.gz" in ext:
             import shutil
             output_path = "media/app/evtx"
-            # file_path = "media/app/evtx/" + str(example.name) + ".json"
             shutil.unpack_archive(path, output_path)
             for file in os.listdir(output_path):
                 if file.startswith(example.name) and file.endswith(".json"):
                     beat_parser(output_path + "/" + file)
-                    # Cuando el formato no es valido, tiene que devolver algo y no lanzar grafo
+                    # Handle error when format it's not correct
+        os.remove(path)
+        if output_path:
+            shutil.rmtree(output_path)
     return redirect(graph_list)
 
 def examples_list(request):
@@ -169,7 +153,6 @@ def elastic_form(request):
 
         date_from = request.POST['from']
         date_to = request.POST['to']
-        #print(request.POST)
         if "elements" in request.POST:
             filters = {}
             l = len(request.POST.getlist('elements'))
@@ -209,24 +192,18 @@ def process_example_simple(request, pk):
         elif "tar.gz" in ext:
             import shutil
             output_path = "media/app/evtx"
-            #file_path = "media/app/evtx/" + str(example.name) + ".json"
             shutil.unpack_archive(path, output_path)
             for file in os.listdir(output_path):
                 if file.startswith(example.name) and file.endswith(".json"):
                     beat_parser_simple(output_path + "/" + file)
-                    # Cuando el formato no es valido, tiene que devolver algo y no lanzar grafo
+                    # Handle error when format it's not correct
     return redirect(graph_list)
 
 def process_file_simple(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
-        #if not file.processed:
         print("File not processed jet: " + str(file.processed))
         parser_simple(file.evtx, str(file.name) + ".db")
-        file.processed = True
-        file.save()
-        #else:
-        #   print("File processed: " + str(file.processed))
     return redirect(graph_list)
 
 class FileListView(ListView):
@@ -305,7 +282,6 @@ def actions_to_edges(request):
                 edge["group"] = "access"
                 edge["color"] = 'purple'
                 access_added.append(str(action.processguid) + str(action.destinationid))
-                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("access" in edge["group"]) :
@@ -318,7 +294,6 @@ def actions_to_edges(request):
                 edge["group"] = "change"
                 edge["color"]= 'orange'
                 registry_key_added.append(str(action.processguid) + str(action.destinationid))
-                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("RegistryKey-SetValue" in edge["group"]) :
@@ -331,7 +306,6 @@ def actions_to_edges(request):
                 edge["group"] = "delete"
                 edge["color"]= 'red'
                 delete_added.append(str(action.processguid) + str(action.destinationid))
-                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("Delete" in edge["group"]) :
@@ -344,7 +318,6 @@ def actions_to_edges(request):
                 edge["group"] = "finish"
                 edge["color"]= 'red'
                 delete_added.append(str(action.processguid) + str(action.destinationid))
-                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("access" in edge["group"]) :
@@ -357,7 +330,6 @@ def actions_to_edges(request):
                 edge["group"] = "load"
                 edge["color"]= 'grey'
                 load_added.append(str(action.processguid) + str(action.destinationid))
-                #print(edge)
             else:
                 for edge in edges:
                     if (action.processguid in edge["from"]) and (action.destinationid in edge["to"]) and ("load" in edge["group"]) :
@@ -390,7 +362,6 @@ def threads_to_edges(request):
                 for action in action_source:
                     ids.append(action.action_id)
                 ids.sort()
-                #print(ids)
                 for action in action_source:
                     if action.action_id == ids[0]:
                         edge["utctime"] = (action.utctime).strftime("%d/%m/%Y %H:%M:%S.%f")
@@ -451,7 +422,6 @@ def process_to_edges(request):
                 for action in action_source:
                     ids.append(action.action_id)
                 ids.sort()
-                #print(ids)
                 for action in action_source:
                     if action.action_id == ids[0]:
                         edge["utctime"] = (action.utctime).strftime("%d/%m/%Y %H:%M:%S.%f")
@@ -463,7 +433,6 @@ def process_to_edges(request):
                     break
 
             edges.append(edge)
-            #print(edges)
     return (edges)
 
 def process_to_nodes(request):

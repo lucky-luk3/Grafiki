@@ -19,7 +19,6 @@ The project is not mature enough, although it works, test plan is not defined je
 Any opinion, bug found, improve request ... will be welcome. 
 
 ## Docs
-* Installation [To-Do]
 * User manual [To-Do]
 
 ## License: GPL-3.0
