@@ -115,6 +115,7 @@ def process_beat(request, pk):
         beat_parser(file.evtx)
     return redirect(graph_list)
 
+
 def process_example(request, pk):
     if request.method == 'POST':
         example = Example.objects.get(pk=pk)
@@ -132,13 +133,17 @@ def process_example(request, pk):
             output_path = "media/app/evtx"
             shutil.unpack_archive(path, output_path)
             for file in os.listdir(output_path):
+                print("File processed: " + str(file))
                 if file.startswith(example.name) and file.endswith(".json"):
-                    beat_parser(output_path + "/" + file)
-                    # Handle error when format it's not correct
+                    output_path = output_path + "/" + file
+                    response = beat_parser(output_path)
+                    if not response:  # If error in parse redirect to example_list
+                        return redirect(examples_list)
+
         os.remove(path)
         if output_path:
-            shutil.rmtree(output_path)
-    return redirect(graph_list)
+            os.remove(output_path)
+        return redirect(graph_list)
 
 def examples_list(request):
     examples = Example.objects.all()
@@ -524,15 +529,18 @@ def connections_to_nodes(request):
 def threads_to_nodes(request):
     threads = Threads.objects.all()
     nodes = []
+    nodes_added = []
     for thread in threads:
-        node = {}
-        node["id"] = thread.threadid
-        node["label"] = thread.threadnid
-        node["group"] = "thread"
-        node["process"] = thread.processguid
-        node["title"] = thread.threadnid
-        #node["view"] = "simple"
-        nodes.append(node)
+        if thread.threadid not in nodes_added:
+            node = {}
+            node["id"] = thread.threadid
+            node["label"] = thread.threadnid
+            node["group"] = "thread"
+            node["process"] = thread.processguid
+            node["title"] = thread.threadnid
+            #node["view"] = "simple"
+            nodes.append(node)
+            nodes_added = thread.threadid
 
 
     return nodes

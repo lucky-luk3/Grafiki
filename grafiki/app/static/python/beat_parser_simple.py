@@ -558,8 +558,11 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
         """
         else:
             print("Invalid format")
-            break
+            cursor.close()
+            return False
+
 
     cursor.close()
     end = time.time()
     print("Time to process file %s seconds ---" % (end - start))
+    return True
