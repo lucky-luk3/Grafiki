@@ -31,19 +31,20 @@ class Home(TemplateView):
     template_name = 'home.html'
 
 class Graph(TemplateView):
-    template_name = 'graph2.html'
+    template_name = 'graph.html'
 
 class Upload_file(TemplateView):
     template_name = 'upload_file.html'
 
 
 def graph_list(request):
-    psevents = PSEvents.objects.all()
-    for event in psevents:
-        event.utctime = event.utctime.strftime("%Y-%m-%d %H:%M:%S.%f")
+    #psevents = PSEvents.objects.all()
+    #for event in psevents:
+        #event.utctime = event.utctime.strftime("%Y-%m-%d %H:%M:%S.%f")
     sessions = Processes.objects.order_by().values('terminalsessionid').distinct()
     integrities = Processes.objects.order_by().values('integritylevel').distinct()
     users = Processes.objects.order_by().values('user').distinct()
+    #actions = Actions.objects.order_by().values('actiontype').distinct()
     edges_actions = actions_to_edges(request)
     edges_threads = threads_to_edges(request)
     edges_dnsresolutions = dnsresolutions_to_edges(request)
@@ -65,8 +66,8 @@ def graph_list(request):
         'integrities': integrities,
         'users':users,
         'edges':data_edges,
-        'nodes':data_nodes,
-        'psevents':psevents
+        'nodes':data_nodes
+        #'psevents':psevents
     })
 
 def upload_file(request):
@@ -100,40 +101,54 @@ def process_file(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
         parser(file.evtx, str(file.name) + ".db")
-        file.processed = True
-        file.save()
     return redirect(graph_list)
 
 def process_beat_simple(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
         beat_parser_simple(file.evtx)
-        file.processed = True
-        file.save()
     return redirect(graph_list)
 
 def process_beat(request, pk):
     if request.method == 'POST':
         file = File.objects.get(pk=pk)
         beat_parser(file.evtx)
-        file.processed = True
-        file.save()
     return redirect(graph_list)
+
 
 def process_example(request, pk):
     if request.method == 'POST':
         example = Example.objects.get(pk=pk)
         url = example.url
-        path = "media\\app\\evtx\\" + str(example.name) + ".evtx"
-        if os.path.isfile(path):
-            print("Exist")
-        else:
-            urllib.request.urlretrieve(url, path)
-        parser(path)
-    return redirect(graph_list)
+        ext = url.split(".")[-1:][0]
+        if "gz" in ext:
+            ext = ".".join(url.split(".")[-2:])
+        path = "media/app/evtx/" + str(example.name) + "." + str(ext)
+        urllib.request.urlretrieve(url, path)
+        output_path = ""
+        if "evtx" in ext:
+            parser(path)
+        elif "tar.gz" in ext:
+            import shutil
+            output_path = "media/app/evtx"
+            shutil.unpack_archive(path, output_path)
+            for file in os.listdir(output_path):
+                print("File processed: " + str(file))
+                if file.startswith(example.name) and file.endswith(".json"):
+                    output_path = output_path + "/" + file
+                    response = beat_parser(output_path)
+                    if not response:  # If error in parse redirect to example_list
+                        return redirect(examples_list)
+
+        os.remove(path)
+        if output_path:
+            os.remove(output_path)
+        return redirect(graph_list)
 
 def examples_list(request):
     examples = Example.objects.all()
+    if not examples:
+        examples = []
     return render(request, 'examples_list.html', {
         'examples': examples
     })
@@ -173,9 +188,21 @@ def process_example_simple(request, pk):
     if request.method == 'POST':
         example = Example.objects.get(pk=pk)
         url = example.url
-        path = str(example.name) + ".evtx"
+        ext = url.split(".")[-1:][0]
+        if "gz" in ext:
+            ext = ".".join(url.split(".")[-2:])
+        path = "media/app/evtx/" + str(example.name) + "." + str(ext)
         urllib.request.urlretrieve(url, path)
-        parser_simple(path)
+        if "evtx" in ext:
+            parser_simple(path)
+        elif "tar.gz" in ext:
+            import shutil
+            output_path = "media/app/evtx"
+            shutil.unpack_archive(path, output_path)
+            for file in os.listdir(output_path):
+                if file.startswith(example.name) and file.endswith(".json"):
+                    beat_parser_simple(output_path + "/" + file)
+                    # Handle error when format it's not correct
     return redirect(graph_list)
 
 def process_file_simple(request, pk):
@@ -183,8 +210,6 @@ def process_file_simple(request, pk):
         file = File.objects.get(pk=pk)
         print("File not processed jet: " + str(file.processed))
         parser_simple(file.evtx, str(file.name) + ".db")
-        file.processed = True
-        file.save()
     return redirect(graph_list)
 
 class FileListView(ListView):
@@ -431,6 +456,9 @@ def process_to_nodes(request):
         label = (process.image).split("\\")[-1]
         node["label"] = label
         node["title"] = str(process.image)
+        #node["shape"] = 'image'
+        #node["image"] = DIR + 'letter-p.png'
+        #node["view"] = "simple"
         nodes.append(node)
 
 
@@ -477,6 +505,9 @@ def files_to_nodes(request):
             label = (file.filename).split("\\")[-1]
             node["label"] = label
             node["title"] = str(file.filename)
+            #node["shape"] = 'image'
+            #node["image"] = DIR + 'paper.png'
+            #node["view"] = "simple"
             nodes.append(node)
             files_added.append(str(file.filename).lower())
 
@@ -498,14 +529,18 @@ def connections_to_nodes(request):
 def threads_to_nodes(request):
     threads = Threads.objects.all()
     nodes = []
+    nodes_added = []
     for thread in threads:
-        node = {}
-        node["id"] = thread.threadid
-        node["label"] = thread.threadnid
-        node["group"] = "thread"
-        node["process"] = thread.processguid
-        node["title"] = thread.threadnid
-        nodes.append(node)
+        if thread.threadid not in nodes_added:
+            node = {}
+            node["id"] = thread.threadid
+            node["label"] = thread.threadnid
+            node["group"] = "thread"
+            node["process"] = thread.processguid
+            node["title"] = thread.threadnid
+            #node["view"] = "simple"
+            nodes.append(node)
+            nodes_added = thread.threadid
 
 
     return nodes

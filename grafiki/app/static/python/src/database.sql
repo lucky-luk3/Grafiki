@@ -75,8 +75,8 @@ CREATE TABLE IF NOT EXISTS Actions
     'ProcessGuid' VARCHAR(255),
     'LogonGuid' VARCHAR(255),
     'DestinationId' VARCHAR(255),
-    'ExtraInfo' VARCHAR(255),
-    'ExtraInfo2' VARCHAR(255)
+    'ExtraInfo' VARCHAR(550),
+    'ExtraInfo2' VARCHAR(550)
 );
 
 CREATE TABLE IF NOT EXISTS Threads

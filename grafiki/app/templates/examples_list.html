@@ -26,8 +26,7 @@
         <th>Source</th>
         <th>Delete</th>
         <th>Process</th>
-        <th>Process Simple</th>
-        <th>Process BeatS</th>
+        <th>Simple Process</th>
       </tr>
     </thead>
     <tbody id="myList">
@@ -61,13 +60,6 @@
           </td>
           <td align="center">
             <form method="post" action="{% url 'process_example_simple' example.pk %}">
-              {% csrf_token %}
-              <button type="submit">
-              <span type="submit" class="fa fa-code-fork"></span></button>
-          </form>
-          </td>
-          <td align="center">
-            <form method="post" action="{% url 'process_beat_simple' example.pk %}">
               {% csrf_token %}
               <button type="submit">
               <span type="submit" class="fa fa-code-fork"></span></button>

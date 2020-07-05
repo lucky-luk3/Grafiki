@@ -81,9 +81,9 @@ WSGI_APPLICATION = 'grafiki.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'app',
-        'USER': 'django',
-        'PASSWORD': 'yourpassword',
+        'NAME': 'grafiki',
+        'USER': 'postgres',
+        'PASSWORD': 'grafiki',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }

@@ -74,6 +74,8 @@ def parser(path, opath=None):
                                     event["Event"]["EventData"]["Description"], event["Event"]["EventData"]["Product"],
                                     event["Event"]["EventData"]["Company"],
                                     original)
+                    #cursor.execute(query_file)
+                    #files_inserted.append(event["Event"]["EventData"]["Image"])
 
             except Exception as e:
                 logger.error("Error query_file 1: " + str(e) + " Event: " + str(event["Event"]))
@@ -119,7 +121,7 @@ def parser(path, opath=None):
                                                             event["Event"]["EventData"]["TerminalSessionId"])
                 cursor.execute(query_user)
             except Exception as e:
-                logger.error("Error 1: " + str(e) + " Event: " + str(query_user))
+                print("Error 1: " + str(e) + " Event: " + str(query_user))
 
         # File creation time changed
         if event["Event"]["System"]["EventID"] == 2:
@@ -128,8 +130,6 @@ def parser(path, opath=None):
         # Network connection
         if event["Event"]["System"]["EventID"] == 3:
             try:
-
-
                 connections_key = str(event["Event"]["EventData"]["SourceIp"])+str(event["Event"]["EventData"]["DestinationIp"])
                 query_connection = 'INSERT INTO public."Connections" ("ConnectionId","Protocol","SourceIp","SourceHostname",' \
                                    '"SourcePort","DestinationIsIpv6","DestinationIp","DestinationHostname","DestinationPort") ' \
@@ -144,7 +144,7 @@ def parser(path, opath=None):
                                     event["Event"]["EventData"]["DestinationPort"])
                 cursor.execute(query_connection)
             except Exception as e:
-                logger.error("Error query_connection 3: " + str(e) + " Event: " + str(query_connection))
+                print("Error query_connection 3: " + str(e) + " Event: " + str(query_connection))
 
             try:
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","LogonGuid","DestinationId",' \
@@ -157,12 +157,12 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["Initiated"])
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 3: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 3: " + str(e) + " Event: " + str(query_action))
 
             try:
                 insert_process(cursor, event)
             except Exception as e:
-                logger.error("Error query_pprocess_exist 3: " + str(e) + " Event: " + str(event["Event"]))
+                print("Error query_pprocess_exist 3: " + str(e) + " Event: " + str(event["Event"]))
 
         # Process Terminated
         if event["Event"]["System"]["EventID"] == 5:
@@ -175,7 +175,7 @@ def parser(path, opath=None):
                 cursor.execute(query_process)
 
             except Exception as e:
-                logger.error("Error query_sprocess 5: " + str(e) + " Event: " + str(query_process))
+                print("Error query_sprocess 5: " + str(e) + " Event: " + str(query_process))
 
             try:  # Action
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -186,7 +186,7 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["ProcessGuid"])
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 5: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 5: " + str(e) + " Event: " + str(query_action))
 
         #  Kernel driver loaded
         if event["Event"]["System"]["EventID"] == 6:
@@ -197,7 +197,7 @@ def parser(path, opath=None):
             try:  # Process
                 insert_process(cursor, event)
             except Exception as e:
-                logger.error("Error query_sprocess 7: " + str(e) + " Event: " + str(query_sprocess))
+                print("Error query_sprocess 7: " + str(e) + " Event: " + str(query_sprocess))
 
             if event["Event"]["EventData"]["ImageLoaded"]:
                 event["Event"]["EventData"]["ImageLoaded"] = str(
@@ -230,7 +230,7 @@ def parser(path, opath=None):
                     event["Event"]["EventData"]["SignatureStatus"])
                 cursor.execute(query_file)
             except Exception as e:
-                logger.error("Error query_file 7: " + str(e) + " Event: " + str(query_file))
+                print("Error query_file 7: " + str(e) + " Event: " + str(query_file))
 
             try:  # Action
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -241,7 +241,7 @@ def parser(path, opath=None):
                     event["Event"]["EventData"]["ProcessGuid"])
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 7: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 7: " + str(e) + " Event: " + str(query_action))
 
         # Create Remote Thread
         if event["Event"]["System"]["EventID"] == 8:
@@ -254,7 +254,7 @@ def parser(path, opath=None):
                 cursor.execute(query_sprocess)
 
             except Exception as e:
-                logger.error("Error query_sprocess 8: " + str(e) + " Event: " + str(query_sprocess))
+                print("Error query_sprocess 8: " + str(e) + " Event: " + str(query_sprocess))
 
             try:  # Target Process
                 query_tprocess = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image") ' \
@@ -265,7 +265,7 @@ def parser(path, opath=None):
                 cursor.execute(query_tprocess)
 
             except Exception as e:
-                logger.error("Error query_tprocess 8: " + str(e) + " Event: " + str(query_tprocess))
+                print("Error query_tprocess 8: " + str(e) + " Event: " + str(query_tprocess))
 
             try:  # Thread
                 thread_key = str(event["Event"]["EventData"]["TargetProcessGuid"]) + ":" + str(event["Event"]["EventData"]["NewThreadId"])
@@ -283,8 +283,9 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["StartModule"],
                                 event["Event"]["EventData"]["StartFunction"])
                 cursor.execute(query_thread)
+
             except Exception as e:
-                logger.error("Error query_thread 8: " + str(e) + " Event: " + str(query_thread))
+                print("Error query_thread 8: " + str(e) + " Event: " + str(query_thread))
 
             try:  # Action
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -295,7 +296,7 @@ def parser(path, opath=None):
                                 thread_key)
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 8: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 8: " + str(e) + " Event: " + str(query_action))
 
         # Raw access read
         if event["Event"]["System"]["EventID"] == 9:
@@ -342,7 +343,7 @@ def parser(path, opath=None):
                         cursor.execute(query_action)
 
             except Exception as e:
-                logger.error("Error query_file 10: " + str(e) + " Event: " + str(query_file))
+                print("Error query_file 10: " + str(e) + " Event: " + str(query_file))
 
             try:  # Thread
                 thread_key = str(event["Event"]["EventData"]["SourceProcessGUID"]) + ":" + str(event["Event"]["EventData"]["SourceThreadId"])
@@ -353,7 +354,7 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["SourceProcessGUID"])
                 cursor.execute(query_thread)
             except Exception as e:
-                logger.error("Error query_thread 10: " + str(e) + " Event: " + str(query_thread))
+                print("Error query_thread 10: " + str(e) + " Event: " + str(query_thread))
 
             try:
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId",' \
@@ -387,7 +388,7 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["CreationUtcTime"])
                 cursor.execute(query_file)
             except Exception as e:
-                logger.error("Error query_file 11: " + str(e) + " Event: " + str(query_file))
+                print("Error query_file 11: " + str(e) + " Event: " + str(query_file))
 
             try:  # Action
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -398,7 +399,7 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["TargetFilename"])
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 11: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 11: " + str(e) + " Event: " + str(query_action))
 
         # Registry Key Operation
         if event["Event"]["System"]["EventID"] == 12 or event["Event"]["System"]["EventID"] == 13 \
@@ -411,7 +412,7 @@ def parser(path, opath=None):
             try:  # Process
                 insert_process(cursor, event)
             except Exception as e:
-                logger.error("Error query_process 12-13-14: " + str(e) + " Event: " + str(event["Event"]))
+                print("Error query_process 12-13-14: " + str(e) + " Event: " + str(event["Event"]))
 
             try:  # RegistryKey
                 if event["Event"]["System"]["EventID"] == 13:
@@ -428,7 +429,7 @@ def parser(path, opath=None):
                                  "VALUES ('{}') ON CONFLICT DO NOTHING;".format(event["Event"]["EventData"]["TargetObject"])
                 cursor.execute(query_key)
             except Exception as e:
-                logger.error("Error query_key 12-13-14: " + str(e) + " Event: " + str(query_key))
+                print("Error query_key 12-13-14: " + str(e) + " Event: " + str(query_key))
 
             try:  # Action
                 if "SetValue" in event["Event"]["EventData"]["EventType"]:
@@ -448,7 +449,7 @@ def parser(path, opath=None):
                         event["Event"]["EventData"]["TargetObject"])
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 12-13-14: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 12-13-14: " + str(e) + " Event: " + str(query_action))
 
         #  File create stream hash
         if event["Event"]["System"]["EventID"] == 15:
@@ -459,7 +460,7 @@ def parser(path, opath=None):
             try:
                 insert_process(cursor, event)
             except Exception as e:
-                logger.error("Error insert_process 17-18: " + str(e) + " Event: " + str(event["Event"]))
+                print("Error insert_process 17-18: " + str(e) + " Event: " + str(event["Event"]))
 
             try:  # Pipe
                 if event["Event"]["EventData"]["PipeName"] not in pipes_inserted:
@@ -469,9 +470,13 @@ def parser(path, opath=None):
                     cursor.execute(query_pipe)
                     pipes_inserted.append(event["Event"]["EventData"]["PipeName"])
             except Exception as e:
-                logger.error("Error query_file 17-18: " + str(e) + " Event: " + str(query_pipe))
+                print("Error query_file 17-18: " + str(e) + " Event: " + str(query_pipe))
 
             try:  # Action
+                if not "EventType" in event["Event"]["EventData"] and event["Event"]["System"]["EventID"] == 18:
+                    event["Event"]["EventData"]["EventType"] = "ConnectPipe"
+                elif not "EventType" in event["Event"]["EventData"] and event["Event"]["System"]["EventID"] == 17:
+                    event["Event"]["EventData"]["EventType"] = "CreatePipe"
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
                                " VALUES ('{}','{}','{}','{}');".format(
                                 event["Event"]["EventData"]["UtcTime"],
@@ -480,7 +485,7 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["PipeName"])
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 17-18: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 17-18: " + str(e) + " Event: " + str(query_action))
 
         # WMI event
         if event["Event"]["System"]["EventID"] == 19 or event["Event"]["System"]["EventID"] == 20 \
@@ -492,7 +497,7 @@ def parser(path, opath=None):
             try:
                 insert_process(cursor, event)
             except Exception as e:
-                logger.error("Error insert_process 22: " + str(e) + " Event: " + str(event["Event"]))
+                print("Error insert_process 22: " + str(e) + " Event: " + str(event["Event"]))
 
             try:  # Query
                 query_dnsquery = 'INSERT INTO public."DNSQuery" ("QueryName") ' \
@@ -500,7 +505,7 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["QueryName"])
                 cursor.execute(query_dnsquery)
             except Exception as e:
-                logger.error("Error query_file 22: " + str(e) + " Event: " + str(query_dnsquery))
+                print("Error query_file 22: " + str(e) + " Event: " + str(query_dnsquery))
 
             try:  # Resolution
                 query_dnsresolution = 'INSERT INTO public."DNSResolution" ("UtcTime","QueryName","QueryStatus","QueryResults") ' \
@@ -511,7 +516,7 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["QueryResults"])
                 cursor.execute(query_dnsresolution)
             except Exception as e:
-                logger.error("Error query_file 22: " + str(e) + " Event: " + str(query_dnsresolution))
+                print("Error query_file 22: " + str(e) + " Event: " + str(query_dnsresolution))
 
             try:  # Action
                 query_action = 'INSERT INTO public."Actions" ("UtcTime","ActionType","ProcessGuid","DestinationId")' \
@@ -522,8 +527,8 @@ def parser(path, opath=None):
                                 event["Event"]["EventData"]["QueryName"])
                 cursor.execute(query_action)
             except Exception as e:
-                logger.error("Error query_action 22: " + str(e) + " Event: " + str(query_action))
+                print("Error query_action 22: " + str(e) + " Event: " + str(query_action))
+    #print("Cerrar cursor")
     cursor.close()
     end = time.time()
-    logger.info("Time to process file %s seconds ---" % (end - start))
-
+    print("Time to process file %s seconds ---" % (end - start))

@@ -19,7 +19,6 @@ The project is not mature enough, although it works, test plan is not defined je
 Any opinion, bug found, improve request ... will be welcome. 
 
 ## Docs
-* Installation [To-Do]
 * User manual [To-Do]
 
 ## License: GPL-3.0
@@ -30,6 +29,19 @@ Any opinion, bug found, improve request ... will be welcome.
 ## Acknowledgments
 * Roberto Rodríguez (HELK & Mordor Projects) [Cyb3rWard0g](https://github.com/Cyb3rWard0g)
 * Samir Bousseaden (EVTX Samples) [SBousseaden](https://github.com/sbousseaden)  
+
+## Installation
+````bash
+git clone https://github.com/lucky-luk3/Grafiki.git
+cd Grafiki
+chmod +x setup.sh
+sudo ./setup.sh
+--- wait ---
+cd grafiki
+python3 manage.py runserver
+````
+In your browser go to `http://127.0.0.1:8000/`  
+Hunt, learn and enjoy!
 
 ## To-Do
 * Add events 2,6,8,15,23.
