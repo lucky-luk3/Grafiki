@@ -95,6 +95,15 @@ CREATE TABLE  "Connections"
     PRIMARY KEY ("ConnectionId")
 );
 
+CREATE TABLE  "app_file"
+(
+    id SERIAL,
+    name VARCHAR(255),
+    evtx VARCHAR(255),
+    processed VARCHAR(255),
+    test VARCHAR(255)
+);
+
 CREATE TABLE  "app_example"
 (
     id SERIAL,
