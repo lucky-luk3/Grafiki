@@ -15,6 +15,7 @@ from .static.python.parser import parser
 from .static.python.parser_simple import parser_simple
 from .static.python.beat_parser import beat_parser
 from .static.python.beat_parser_simple import beat_parser_simple
+from .static.python.csv_parser import csv_parser
 from .forms import ExampleForm
 import json
 import random
