@@ -43,6 +43,8 @@ def csv_parser(path, opath=None):
             # print(type(event))
 
             # Process Creation
+            if "creationDate" not in event:
+            	event["creationDate"] = event["fireEventDate"]
             if event["idEvent"] == '1':
                 try:
                     if event["ProcessId"] not in full_process_inserted:
@@ -565,3 +567,4 @@ def csv_parser(path, opath=None):
     cursor.close()
     end = time.time()
     print("Time to process file %s seconds ---" % (end - start))
+
