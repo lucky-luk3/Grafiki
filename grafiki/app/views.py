@@ -115,6 +115,17 @@ def process_beat(request, pk):
         beat_parser(file.evtx)
     return redirect(graph_list)
 
+def process_csv_simple(request, pk):
+    if request.method == 'POST':
+        file = File.objects.get(pk=pk)
+        beat_parser_simple(file.evtx)
+    return redirect(graph_list)
+
+def process_csv(request, pk):
+    if request.method == 'POST':
+        file = File.objects.get(pk=pk)
+        csv_parser(file.evtx)
+    return redirect(graph_list)
 
 def process_example(request, pk):
     if request.method == 'POST':

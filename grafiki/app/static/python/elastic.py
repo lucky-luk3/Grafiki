@@ -134,6 +134,7 @@ def es_get_all(date_from, date_to, filters="", options=""):
                     events.append(event)
                 except Exception as e:
                     print("Eception: {}, Event: {}".format(e, j))
+    print(len(events))
     return events
 
 

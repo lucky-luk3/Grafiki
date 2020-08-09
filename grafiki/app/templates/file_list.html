@@ -17,6 +17,7 @@
         <th>Process Simple</th>
         <th>Process Beat</th>
         <th>Process BeatS</th>
+        <th>Process CSV</th>
       </tr>
     </thead>
     <tbody>
@@ -56,6 +57,12 @@
             <form method="post" action="{% url 'process_beat_simple' file.pk %}">
               {% csrf_token %}
               <button type="submit" class="btn btn-secondary btn-sm">Process BeatS</button>
+          </form>
+          </td>
+          <td>
+            <form method="post" action="{% url 'process_csv' file.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm">Process CSV</button>
           </form>
           </td>
         </tr>

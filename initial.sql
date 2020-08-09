@@ -72,8 +72,7 @@ CREATE TABLE  "Actions"
 
 CREATE TABLE  "Threads"
 (
-    threads_id SERIAL,
-    "ThreadId" VARCHAR(255),
+    "ThreadId" VARCHAR(510) PRIMARY KEY,
     "ThreadNId" INT,
     "StartAddress" VARCHAR(255),
     "StartModule" VARCHAR(255),
