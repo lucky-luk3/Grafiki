@@ -72,8 +72,7 @@ CREATE TABLE  "Actions"
 
 CREATE TABLE  "Threads"
 (
-    threads_id SERIAL,
-    "ThreadId" VARCHAR(255),
+    "ThreadId" VARCHAR(510) PRIMARY KEY,
     "ThreadNId" INT,
     "StartAddress" VARCHAR(255),
     "StartModule" VARCHAR(255),
@@ -93,6 +92,15 @@ CREATE TABLE  "Connections"
     "DestinationHostname" VARCHAR(255),
     "DestinationPort" VARCHAR(255),
     PRIMARY KEY ("ConnectionId")
+);
+
+CREATE TABLE  "app_file"
+(
+    id SERIAL,
+    name VARCHAR(255),
+    evtx VARCHAR(255),
+    processed VARCHAR(255),
+    test VARCHAR(255)
 );
 
 CREATE TABLE  "app_example"

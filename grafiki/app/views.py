@@ -15,6 +15,7 @@ from .static.python.parser import parser
 from .static.python.parser_simple import parser_simple
 from .static.python.beat_parser import beat_parser
 from .static.python.beat_parser_simple import beat_parser_simple
+from .static.python.csv_parser import csv_parser
 from .forms import ExampleForm
 import json
 import random
@@ -75,7 +76,7 @@ def upload_file(request):
         form = FileForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('app.file_list')
+            return redirect(file_list)
     else:
         form = FileForm()
     return render(request, 'upload_file.html', {
@@ -115,6 +116,17 @@ def process_beat(request, pk):
         beat_parser(file.evtx)
     return redirect(graph_list)
 
+def process_csv_simple(request, pk):
+    if request.method == 'POST':
+        file = File.objects.get(pk=pk)
+        beat_parser_simple(file.evtx)
+    return redirect(graph_list)
+
+def process_csv(request, pk):
+    if request.method == 'POST':
+        file = File.objects.get(pk=pk)
+        csv_parser(file.evtx)
+    return redirect(graph_list)
 
 def process_example(request, pk):
     if request.method == 'POST':

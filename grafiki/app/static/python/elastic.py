@@ -50,41 +50,42 @@ def ps_beautify(s):
 
 
 def crete_connection_sysmon():
-    connections.create_connection(hosts=['192.168.129.132'], timeout=20)
+    connections.create_connection(hosts=['192.168.129.137'], timeout=20)
     s = Search(index='logs-endpoint-winevent-sysmon*')
     return s
 
 def es_get_all(date_from, date_to, filters="", options=""):
-    client = Elasticsearch(['192.168.129.132'])
-    s = Search(using=client, index='logs-*')
+    client = Elasticsearch(hosts=[{"host" : "192.168.129.137", "port" : 9200}])
+    s = Search(using=client, index='logs*')
 
-    if date_from and date_to:
+    if date_from and date_to: #2018-04-29 09:02:26
         datef, timef = date_from.split(" ")
         datetimef = str(datef) + "T" + str(timef) + ".000Z"
         datet, timet = date_to.split(" ")
         datetimet = str(datet) + "T" + str(timet) + ".000Z"
-        s = s.query('bool', filter=[Q('range', log_ingest_timestamp={'gte': datetimef, 'lt': datetimet})])
+        s = s.query('bool', filter=[Q('range', event_original_time={'gte': datetimef, 'lt': datetimet})])
+
     if filters:
         for e in filters:
             if "=" == filters[e]["operator"]:
                 f = []
-                options = filters[e]["text"].split(",")
-                for option in options:
+                o = filters[e]["text"].split(",")
+                for option in o:
                     if len(f) == 0:
-                        f.append(Q("match", **{filters[e]["element"]: option}))
+                        f.append(Q('match', **{filters[e]["element"]:option}))
                     else:
                         f[0] = f[0] | Q("match", **{filters[e]["element"]: option})
                 s = s.query('bool', filter=f)
-
             elif "!=" == filters[e]["operator"]:
                 f = []
-                options = filters[e]["text"].split(",")
-                for option in options:
+                o = filters[e]["text"].split(",")
+                for option in o:
                     if len(f) == 0:
                         f.append(~Q("match", **{filters[e]["element"]: option}))
                     else:
                         f[0] = f[0] | Q("match", **{filters[e]["element"]: option})
                 s = s.query('bool', filter=f)
+
     total = s.count()
     s = s[0:total]
     response = s.execute()
@@ -93,16 +94,14 @@ def es_get_all(date_from, date_to, filters="", options=""):
     for hit in response:
         event = {}
         j = hit.to_dict()
-        if "powershell" in options and "Microsoft-Windows-PowerShell/Operational" in j["log_name"] or\
-                "sysmon" in options and "Sysmon" in j["log_name"]:
+        if "powershell" in options and "Microsoft-Windows-PowerShell/Operational" in j["log_name"] or "sysmon" in options and "Sysmon" in j["log_name"]:
             event["event_id"] = j["event_id"]
             event["log_name"] = j["log_name"]  # "Microsoft-Windows-Sysmon/Operational"
             event["computer_name"] = j["host_name"]
             event["event_data"] = {}
             if "Sysmon" in j["log_name"]:
-                #print("entra en sysmon elastic")
-                if "z_original_message" in j:
-                    lines = str(j["z_original_message"]).splitlines()
+                if "event_original_message" in j:
+                    lines = str(j["event_original_message"]).splitlines()
                     for line in lines:
                         elements = line.split(": ")
                         key = elements[0]
@@ -134,6 +133,7 @@ def es_get_all(date_from, date_to, filters="", options=""):
                     events.append(event)
                 except Exception as e:
                     print("Eception: {}, Event: {}".format(e, j))
+    print(len(events))
     return events
 
 
