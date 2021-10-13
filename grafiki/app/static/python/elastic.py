@@ -55,10 +55,18 @@ def crete_connection_sysmon():
     return s
 
 def es_get_all(date_from, date_to, filters="", options=""):
+    import configparser
+    config = configparser.RawConfigParser()
+    config.read('config/config.cfg')
+
+    es_host = dict(config.items('ELASTIC'))["IPAddress"]
+    es_port = dict(config.items('ELASTIC'))["Port"]
+    
+
     client = Elasticsearch(hosts=[{"host" : "192.168.129.137", "port" : 9200}])
     s = Search(using=client, index='logs*')
 
-    if date_from and date_to: #2018-04-29 09:02:26
+    if date_from and date_to: #2018-04-29 09:02:26 #2019-03-01 01:41:29
         datef, timef = date_from.split(" ")
         datetimef = str(datef) + "T" + str(timef) + ".000Z"
         datet, timet = date_to.split(" ")
@@ -102,6 +110,12 @@ def es_get_all(date_from, date_to, filters="", options=""):
             if "Sysmon" in j["log_name"]:
                 if "event_original_message" in j:
                     lines = str(j["event_original_message"]).splitlines()
+                elif "z_original_message" in j:
+                    lines = str(j["z_original_message"]).splitlines()
+                else:
+                    print(j.keys())
+
+                if lines:
                     for line in lines:
                         elements = line.split(": ")
                         key = elements[0]
@@ -111,6 +125,7 @@ def es_get_all(date_from, date_to, filters="", options=""):
                             value = ""
                         event["event_data"][key] = value
                     events.append(event)
+                    
             elif "Microsoft-Windows-PowerShell/Operational" in j["log_name"]:
                 try:
                     event["event_data"]["log_ingest_timestamp"] = j["log_ingest_timestamp"]
