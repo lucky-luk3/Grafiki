@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    
+    environment:
+      POSTGRES_PASSWORD: grafiki
+
+    ports: 
+      - "8000:8000"
+## Uncomment the following lines for HELK compatibility installation    
+    networks:
+      - docker_helk
+networks:
+  docker_helk:
+    external: true

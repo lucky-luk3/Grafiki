@@ -1,4 +1,12 @@
-CREATE TABLE "DNSResolution"
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    ALTER USER postgres PASSWORD 'grafiki';
+    create database grafiki;
+    \c grafiki;
+
+    CREATE TABLE "DNSResolution"
 (
     id SERIAL,
     "UtcTime" TIMESTAMPTZ,
@@ -65,7 +73,7 @@ CREATE TABLE  "Actions"
     "ActionType" VARCHAR(255),
     "ProcessGuid" VARCHAR(255),
     "LogonGuid" VARCHAR(255),
-    "DestinationId" VARCHAR(255),
+    "DestinationId" VARCHAR(2550),
     "ExtraInfo" VARCHAR(5550),
     "ExtraInfo2" VARCHAR(5550)
 );
@@ -97,7 +105,7 @@ CREATE TABLE  "Connections"
 CREATE TABLE  "app_file"
 (
     id SERIAL,
-    name VARCHAR(255),
+    name VARCHAR(255) ,
     evtx VARCHAR(255),
     processed VARCHAR(255),
     test VARCHAR(255)
@@ -106,11 +114,11 @@ CREATE TABLE  "app_file"
 CREATE TABLE  "app_example"
 (
     id SERIAL,
-    name VARCHAR(255) not null,
+    name VARCHAR(255) NOT NULL,
     url VARCHAR(255),
     source VARCHAR(255),
     category VARCHAR(255),
-    primary key(name)
+    unique(name)
 );
 
 CREATE TABLE  "PSEvents"
@@ -351,4 +359,5 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('empire_invoke_runas','https://github.com/OTRF/Security-Datasets/raw/master/datasets/atomic/windows/privilege_escalation/host/empire_invoke_runas.tar.gz','https://github.com/OTRF/Security-Datasets','privilege_escalation'),
     ('empire_uac_shellapi_fodhelper','https://github.com/OTRF/Security-Datasets/raw/master/datasets/atomic/windows/privilege_escalation/host/empire_uac_shellapi_fodhelper.zip','https://github.com/OTRF/Security-Datasets','privilege_escalation') 
     ON CONFLICT (name) DO NOTHING;
-;
+
+EOSQL

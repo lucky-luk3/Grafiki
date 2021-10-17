@@ -12,6 +12,9 @@ logger = logging.getLogger()
 logger.setLevel(logging.ERROR)
 
 def insert_process(cursor, event):
+    if "ExecutionProcessID" in event["event_data"]:
+        event["event_data"]["ProcessId"] = event["event_data"]["ExecutionProcessID"]
+
     query_process = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image", "ComputerName") ' \
                         "VALUES ('{}',{},'{}','{}') ON CONFLICT DO NOTHING;".format(
                             event["event_data"]["ProcessGuid"],
@@ -46,12 +49,24 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
             event = json.loads(line)
         else:
             event = line
-        if "log_name" in event:
-            if "Sysmon" in event["log_name"]:
+
+        if "SourceName" in event:
+            event["log_name"] = event["SourceName"]
+            if "Sysmon" in event["SourceName"]:
+                #event =  {k.lower(): v for k, v in event.items()}
+                event["computer_name"] = event["Hostname"]
+                event["event_id"] = event["EventID"]         
+                if "event_data" not in event:
+                    event["event_data"] = event
+        if "log_name" in event or "SourceName" in event:
+            if "Sysmon" in event["log_name"] or "Sysmon" in event["SourceName"]:
                 # Process Creation
                 if event["event_id"] == 1:
                     try:
                         if event["event_data"]["ProcessGuid"] not in full_process_inserted:
+                            if "ExecutionProcessID" in event["event_data"]:
+                                event["event_data"]["ProcessId"] = event["event_data"]["ExecutionProcessID"]
+
                             query_process = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image","IntegrityLevel",' \
                                             '"TerminalSessionId", "User", "ComputerName")' \
                                             " VALUES ('{}','{}','{}','{}','{}', '{}', '{}')" \
@@ -68,7 +83,7 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                             cursor.execute(query_process)
                             full_process_inserted.append(event["event_data"]["ProcessGuid"])
                     except Exception as e:
-                        logger.error("Error query_process 1: " + str(e) + " Event: " + str(event["Event"]))
+                        logger.error("Error query_process 1: " + str(e) + " Event: " + str(event))
 
                     try:
                         if event["event_data"]["Image"] not in files_inserted:
@@ -91,7 +106,7 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                             # files_inserted.append(event["event_data"]["Image"])
 
                     except Exception as e:
-                        logger.error("Error query_file 1: " + str(e) + " Event: " + str(event["Event"]))
+                        logger.error("Error query_file 1: " + str(e) + " Event: " + str(event))
 
                     try:
                         query_pprocess = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image", "ComputerName") ' \
@@ -145,6 +160,7 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                             event["event_data"]["DestinationHostname"] = ""
                         if "SourceHostname" not in event["event_data"]:
                             event["event_data"]["SourceHostname"] = ""
+                            
                         connections_key = event["event_data"]["DestinationIp"]
                         query_connection = 'INSERT INTO public."Connections" ("ConnectionId","Protocol","SourceIp","SourceHostname",' \
                                            '"SourcePort","DestinationIsIpv6","DestinationIp","DestinationHostname","DestinationPort") ' \
@@ -177,7 +193,7 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                     try:
                         insert_process(cursor, event)
                     except Exception as e:
-                        print("Error query_pprocess_exist 3: " + str(e) + " Event: " + str(event["Event"]))
+                        print("Error query_pprocess_exist 3: " + str(e) + " Event: " + str(event))
                         # Process Terminated
                 if event["event_id"] == 5:
                     try:  # Destination Process
@@ -265,7 +281,7 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                 # Create Remote Thread
                 if event["event_id"] == 8:
                     try:  # Source Process
-                        query_sprocess = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image","ComputerName)' \
+                        query_sprocess = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image","ComputerName")' \
                                          " VALUES ('{}',{},'{}','{}') ON CONFLICT DO NOTHING;" \
                             .format(event["event_data"]["SourceProcessGuid"],
                                     event["event_data"]["SourceProcessId"],
@@ -432,6 +448,12 @@ def beat_parser(path, es=False, date_from="", date_to="", filters="", options=""
                 # Registry Key Operation
                 if event["event_id"] == 12 or event["event_id"] == 13 \
                         or event["event_id"] == 14:
+
+                    if "EventType" not in event["event_data"]:
+                        if event["event_id"] == 12 or event["event_id"] == 13:
+                            event["event_data"]["EventType"] = "AddedOrDeleted"
+                        elif event["event_id"] == 14:
+                            event["event_data"]["EventType"] = "Renamed"
 
                     if event["event_data"]["TargetObject"]:
                         event["event_data"]["TargetObject"] = str(
