@@ -13,6 +13,9 @@ logger.setLevel(logging.ERROR)
 
 
 def insert_process(cursor, event):
+    if "ExecutionProcessID" in event["event_data"]:
+        event["event_data"]["ProcessId"] = event["event_data"]["ExecutionProcessID"]
+        
     query_process = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image") ' \
                         "VALUES ('{}',{},'{}') ON CONFLICT DO NOTHING;".format(
                             (event["event_data"]["Image"]).lower(),
@@ -48,12 +51,23 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
             event = json.loads(line)
         else:
             event = line
-        if "log_name" in event:
-            if "Sysmon" in event["log_name"]:
+        if "SourceName" in event:
+            event["log_name"] = event["SourceName"]
+            if "Sysmon" in event["SourceName"]:
+                #event =  {k.lower(): v for k, v in event.items()}
+                event["computer_name"] = event["Hostname"]
+                event["event_id"] = event["EventID"]         
+                if "event_data" not in event:
+                    event["event_data"] = event
+        if "log_name" in event or "SourceName" in event:
+            if "Sysmon" in event["log_name"] or "Sysmon" in event["SourceName"]:
                 # Process Creation
                 if event["event_id"] == 1:
                     try:
                         if event["event_data"]["ProcessGuid"] not in full_process_inserted:
+                            if "ExecutionProcessID" in event["event_data"]:
+                                event["event_data"]["ProcessId"] = event["event_data"]["ExecutionProcessID"]
+
                             query_process = 'INSERT INTO public."Processes" ("ProcessGuid","ProcessId","Image","IntegrityLevel",' \
                                             '"TerminalSessionId", "User")' \
                                             " VALUES ('{}','{}','{}','{}','{}', '{}')" \
@@ -399,6 +413,12 @@ def beat_parser_simple(path, es=False, date_from="", date_to="", filters="", opt
                 # Registry Key Operation
                 if event["event_id"] == 12 or event["event_id"] == 13 \
                         or event["event_id"] == 14:
+                    
+                    if "EventType" not in event["event_data"]:
+                        if event["event_id"] == 12 or event["event_id"] == 13:
+                            event["event_data"]["EventType"] = "AddedOrDeleted"
+                        elif event["event_id"] == 14:
+                            event["event_data"]["EventType"] = "Renamed"
 
                     if event["event_data"]["TargetObject"]:
                         event["event_data"]["TargetObject"] = str(

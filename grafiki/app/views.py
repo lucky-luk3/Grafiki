@@ -140,7 +140,7 @@ def process_example(request, pk):
         output_path = ""
         if "evtx" in ext:
             parser(path)
-        elif "tar.gz" in ext:
+        elif "tar.gz" in ext or "zip" in ext:
             import shutil
             output_path = "media/app/evtx"
             shutil.unpack_archive(path, output_path)

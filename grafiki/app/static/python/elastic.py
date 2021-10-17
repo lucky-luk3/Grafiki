@@ -50,20 +50,19 @@ def ps_beautify(s):
 
 
 def crete_connection_sysmon():
-    connections.create_connection(hosts=['192.168.129.137'], timeout=20)
+    connections.create_connection(hosts=['192.168.129.132'], timeout=20)
     s = Search(index='logs-endpoint-winevent-sysmon*')
     return s
 
 def es_get_all(date_from, date_to, filters="", options=""):
     import configparser
-    config = configparser.RawConfigParser()
-    config.read('config/config.cfg')
+    config = configparser.ConfigParser()
+    config.read('/opt/grafiki/app/static/python/config/config.cfg')
 
-    es_host = dict(config.items('ELASTIC'))["IPAddress"]
-    es_port = dict(config.items('ELASTIC'))["Port"]
-    
+    es_host =  config["ELASTIC"]["IPAddress"]
+    es_port =  config["ELASTIC"]["Port"]
 
-    client = Elasticsearch(hosts=[{"host" : "192.168.129.137", "port" : 9200}])
+    client = Elasticsearch(hosts=[{"host" : es_host, "port" : int(es_port)}])
     s = Search(using=client, index='logs*')
 
     if date_from and date_to: #2018-04-29 09:02:26 #2019-03-01 01:41:29
@@ -71,7 +70,8 @@ def es_get_all(date_from, date_to, filters="", options=""):
         datetimef = str(datef) + "T" + str(timef) + ".000Z"
         datet, timet = date_to.split(" ")
         datetimet = str(datet) + "T" + str(timet) + ".000Z"
-        s = s.query('bool', filter=[Q('range', event_original_time={'gte': datetimef, 'lt': datetimet})])
+        s = s.filter('range' ,  **{'@timestamp': {'gte': datetimef, 'lt': datetimet}})
+        #s = s.query('bool', filter=[Q('range', event_original_time={'gte': datetimef, 'lt': datetimet})])
 
     if filters:
         for e in filters:
@@ -102,6 +102,17 @@ def es_get_all(date_from, date_to, filters="", options=""):
     for hit in response:
         event = {}
         j = hit.to_dict()
+        if "SourceName" in j:
+            j["log_name"] = j["SourceName"]
+            if "Sysmon" in j["SourceName"]:
+                #event =  {k.lower(): v for k, v in event.items()}
+                #j["computer_name"] = j["Hostname"]
+                j["event_id"] = j["EventID"]         
+                if "event_data" not in j:
+                    j["event_data"] = j
+                j["host_name"] = j["Hostname"]
+                j["event_original_message"] = j["Message"]
+
         if "powershell" in options and "Microsoft-Windows-PowerShell/Operational" in j["log_name"] or "sysmon" in options and "Sysmon" in j["log_name"]:
             event["event_id"] = j["event_id"]
             event["log_name"] = j["log_name"]  # "Microsoft-Windows-Sysmon/Operational"
@@ -125,7 +136,7 @@ def es_get_all(date_from, date_to, filters="", options=""):
                             value = ""
                         event["event_data"][key] = value
                     events.append(event)
-                    
+                
             elif "Microsoft-Windows-PowerShell/Operational" in j["log_name"]:
                 try:
                     event["event_data"]["log_ingest_timestamp"] = j["log_ingest_timestamp"]
@@ -148,7 +159,8 @@ def es_get_all(date_from, date_to, filters="", options=""):
                     events.append(event)
                 except Exception as e:
                     print("Eception: {}, Event: {}".format(e, j))
-    print(len(events))
+    print(f"Number of events: {len(events)}")
+    #print(events)
     return events
 
 
