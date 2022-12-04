@@ -3,4 +3,5 @@ django
 psycopg2 
 djangorestframework 
 django-crispy-forms 
+django-cors-headers
 evtx

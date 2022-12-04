@@ -25,12 +25,13 @@ SECRET_KEY = 'j-)4yu(bse8jw4f5v+6-%$f$v1t7#f6a7ug%(0%!=0nvux+sv&'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['grafiki.local']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'app.apps.WebConfig',
     'rest_framework',
     'django.contrib.admin',
@@ -45,6 +46,8 @@ INSTALLED_APPS = [
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -135,3 +138,10 @@ REST_FRAMEWORK = {
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MEDIA_URL = '/media/'
+
+CORS_ALLOWED_ORIGINS = [
+    'http://grafiki.local:8000',
+]
+
+CORS_ALLOW_ALL_ORIGINS = True # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
+CORS_ALLOW_CREDENTIALS = True

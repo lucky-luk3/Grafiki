@@ -34,10 +34,11 @@ Any opinion, bug found, improve request ... will be welcome.
 ````bash
 git clone https://github.com/lucky-luk3/Grafiki.git
 cd Grafiki
-docker compose up --build
+sudo -- sh -c -e "echo '127.0.0.1 grafiki.local' >> /etc/hosts"
+docker compose up --build &
 docker exec -it -d grafiki_app_1 /init_django.sh
 ````
-In your browser go to `http://127.0.0.1:8000/`  
+In your browser go to `http://127.0.0.1:8000/` or  `http://grafiki.local:8000/`
 Hunt, learn and enjoy!
 
 ## To-Do

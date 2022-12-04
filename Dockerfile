@@ -11,7 +11,7 @@ WORKDIR /code
 RUN apt-get -y update
 RUN apt-get install sudo
 RUN sudo apt-get install net-tools
-RUN apt install python3 python3-pip libpq-dev -y
+RUN sudo apt install python3 python3-pip libpq-dev -y
 COPY requirements.txt /code/
 RUN pip3 install -r /code/requirements.txt
 
