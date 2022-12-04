@@ -590,7 +590,7 @@
                 node = nodes.get(node_id)
                 console.log('item1', node);
                 if (node.group == 'process'){
-                  fetch('http://127.0.0.1:8000/api/v1/processes/?processguid=' + node_id)
+                  fetch('http://grafiki.local:8000/api/v1/processes/?processguid=' + node_id)
                     .then(function(response) {
                       return response.json();
                     })
@@ -602,7 +602,7 @@
                     })
                 }
                 else if (node.group == 'file'){
-                  fetch('http://127.0.0.1:8000/api/v1/files/?filename=' + node_id)
+                  fetch('http://grafiki.local:8000/api/v1/files/?filename=' + node_id)
                     .then(function(response) {
                       return response.json();
                     })
@@ -614,7 +614,7 @@
                     })
                 }
                 else if (node.group == 'registrykey'){
-                  fetch('http://127.0.0.1:8000/api/v1/registrykeys/?key=' + node_id)
+                  fetch('http://grafiki.local:8000/api/v1/registrykeys/?key=' + node_id)
                     .then(function(response) {
                       return response.json();
                     })
@@ -626,7 +626,7 @@
                     })
                 }
                 else if (node.group == 'thread'){
-                  fetch('http://127.0.0.1:8000/api/v1/threads/?threadid=' + node_id)
+                  fetch('http://grafiki.local:8000/api/v1/threads/?threadid=' + node_id)
                     .then(function(response) {
                       return response.json();
                     })
@@ -638,7 +638,7 @@
                     })
                 }
                 else if (node.group == 'connection'){
-                  fetch('http://127.0.0.1:8000/api/v1/connections/?connectionid=' + node_id)
+                  fetch('http://grafiki.local:8000/api/v1/connections/?connectionid=' + node_id)
                     .then(function(response) {
                       return response.json();
                     })
@@ -653,7 +653,7 @@
               else if (edge_id){
                 edge = edges.get(edge_id)
                 console.log('Edge', edge);
-                fetch('http://127.0.0.1:8000/api/v1/actions/?action_id=' + edge_id)
+                fetch('http://grafiki.local:8000/api/v1/actions/?action_id=' + edge_id)
                     .then(function(response) {
                       return response.json();
                     })

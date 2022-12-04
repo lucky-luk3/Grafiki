@@ -1,4 +1,12 @@
-CREATE TABLE "DNSResolution"
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    ALTER USER postgres PASSWORD 'grafiki';
+    create database grafiki;
+    \c grafiki;
+
+    CREATE TABLE "DNSResolution"
 (
     id SERIAL,
     "UtcTime" TIMESTAMPTZ,
@@ -65,7 +73,7 @@ CREATE TABLE  "Actions"
     "ActionType" VARCHAR(255),
     "ProcessGuid" VARCHAR(255),
     "LogonGuid" VARCHAR(255),
-    "DestinationId" VARCHAR(255),
+    "DestinationId" VARCHAR(2550),
     "ExtraInfo" VARCHAR(5550),
     "ExtraInfo2" VARCHAR(5550)
 );
@@ -97,7 +105,7 @@ CREATE TABLE  "Connections"
 CREATE TABLE  "app_file"
 (
     id SERIAL,
-    name VARCHAR(255),
+    name VARCHAR(255) ,
     evtx VARCHAR(255),
     processed VARCHAR(255),
     test VARCHAR(255)
@@ -106,11 +114,11 @@ CREATE TABLE  "app_file"
 CREATE TABLE  "app_example"
 (
     id SERIAL,
-    name VARCHAR(255) not null,
+    name VARCHAR(255) NOT NULL,
     url VARCHAR(255),
     source VARCHAR(255),
     category VARCHAR(255),
-    primary key(name)
+    unique(name)
 );
 
 CREATE TABLE  "PSEvents"
@@ -134,14 +142,6 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('sysmon_10_lsass_mimikatz_sekurlsa_logonpasswords','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Credential%20Access/sysmon_10_lsass_mimikatz_sekurlsa_logonpasswords.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Credential_Access'),
     ('sysmon_13_keylogger_directx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Credential%20Access/sysmon_13_keylogger_directx.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Credential_Access'),
     ('Mimikatz_hosted_Github','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Credential%20Access/sysmon_3_10_Invoke-Mimikatz_hosted_Github.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Credential_Access'),
-    ('empire_dcsync','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_dcsync.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
-    ('empire_mimikatz_export_master_key','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_mimikatz_export_master_key.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
-    ('empire_mimikatz_extract_tickets','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_mimikatz_extract_tickets.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
-    ('empire_mimikatz_logonpasswords','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_mimikatz_logonpasswords.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
-    ('empire_mimikatz_lsadump_sam','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_mimikatz_lsadump_sam.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
-    ('empire_mimikatz_opth','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_mimikatz_opth.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
-    ('empire_powerdump','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_powerdump.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
-    ('empire_reg_dump_sam','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/credential_access/host/empire_reg_dump_sam.tar.gz','https://github.com/hunters-forge/mordor','Credential_Access'),
     ('DE_Powershell_CLM_Disabled_Sysmon_12','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Defense%20Evasion/DE_Powershell_CLM_Disabled_Sysmon_12.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Defense_Evasion'),
     ('DE_UAC_Disabled_Sysmon_12_13','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Defense%20Evasion/DE_UAC_Disabled_Sysmon_12_13.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Defense_Evasion'),
     ('DSE_bypass_BYOV_TDL_dummydriver_sysmon_6_7_13','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Defense%20Evasion/DSE_bypass_BYOV_TDL_dummydriver_sysmon_6_7_13.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Defense_Evasion'),
@@ -157,22 +157,10 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('sysmon_10_1_ppid_spoofing','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Defense%20Evasion/sysmon_10_1_ppid_spoofing.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Defense_Evasion'),
     ('sysmon_13_rdp_settings_tampering','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Defense%20Evasion/sysmon_13_rdp_settings_tampering.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Defense_Evasion'),
     ('sysmon_2_11_evasion_timestomp_MACE','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Defense%20Evasion/sysmon_2_11_evasion_timestomp_MACE.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Defense_Evasion'),
-    ('empire_dcsync_acl','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/defense_evasion/host/empire_dcsync_acl.tar.gz','https://github.com/hunters-forge/mordor','Defense_Evasion'),
-    ('empire_dll_injection','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/defense_evasion/host/empire_dll_injection.tar.gz','https://github.com/hunters-forge/mordor','Defense_Evasion'),
-    ('empire_enable_rdp','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/defense_evasion/host/empire_enable_rdp.tar.gz','https://github.com/hunters-forge/mordor','Defense_Evasion'),
-    ('empire_invoke_msbuild','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/defense_evasion/host/empire_invoke_msbuild.tar.gz','https://github.com/hunters-forge/mordor','Defense_Evasion'),
-    ('empire_psinject','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/defense_evasion/host/empire_psinject.tar.gz','https://github.com/hunters-forge/mordor','Defense_Evasion'),
-    ('empire_wdigest_downgrade','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/defense_evasion/host/empire_wdigest_downgrade.tar.gz','https://github.com/hunters-forge/mordor','Defense_Evasion'),  
     ('discovery_enum_shares_target_sysmon_3_18','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Discovery/discovery_enum_shares_target_sysmon_3_18.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Discovery'),
+    --('discovery_meterpreter_ps_cmd_process_listing_sysmon_10','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Discovery/discovery_meterpreter_ps_cmd_process_listing_sysmon_10.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Discovery'), #en parse problema con thread
     ('discovery_sysmon_18_Invoke_UserHunter_NetSessionEnum_DC-srvsvc','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Discovery/discovery_sysmon_18_Invoke_UserHunter_NetSessionEnum_DC-srvsvc.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Discovery'),
     ('discovery_sysmon_3_Invoke_UserHunter_SourceMachine','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Discovery/discovery_sysmon_3_Invoke_UserHunter_SourceMachine.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Discovery'),
-    ('empire_find_local_admin','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/discovery/host/empire_find_local_admin.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_get_session_local','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/discovery/host/empire_get_session_local.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_net_domain_admins','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/discovery/host/empire_net_domain_admins.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_net_local_admins','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/discovery/host/empire_net_local_admins.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_net_user','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/discovery/host/empire_net_user.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_net_user_domain','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/discovery/host/empire_net_user_domain.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_net_user_domain_specific','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/discovery/host/empire_net_user_domain_specific.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
     ('Exec_sysmon_meterpreter_reversetcp_msipackage','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Execution/Exec_sysmon_meterpreter_reversetcp_msipackage.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Execution'),
     ('Exec_via_cpl_Application_Experience_EventID_17_ControlPanelApplet','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Execution/Exec_via_cpl_Application_Experience_EventID_17_ControlPanelApplet.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Execution'),
     ('Sysmon_Exec_CompiledHTML','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Execution/Sysmon_Exec_CompiledHTML.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Execution'),
@@ -199,13 +187,6 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('sysmon_mshta_sharpshooter_stageless_meterpreter','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Execution/sysmon_mshta_sharpshooter_stageless_meterpreter.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Execution'),
     ('sysmon_vbs_sharpshooter_stageless_meterpreter','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Execution/sysmon_vbs_sharpshooter_stageless_meterpreter.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Execution'),
     ('covenant_powerhell_system_reflection_assembly_load','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/covenant_powerhell_system_reflection_assembly_load.tar.gz','https://github.com/OTRF/Security-Datasets','Execution'),
-    ('covenant_powerhell_system_reflection_assembly_load','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/covenant_powerhell_system_reflection_assembly_load.tar.gz','https://github.com/hunters-forge/mordor','Execution'),
-    ('empire_invoke_psexec','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/empire_invoke_psexec.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_invoke_psremoting','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/empire_invoke_psremoting.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_invoke_wmi','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/empire_invoke_wmi.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_invoke_wmi_debugger','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/empire_invoke_wmi_debugger.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_launcher_vbs','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/empire_launcher_vbs.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
-    ('empire_wmic_add_user','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/execution/host/empire_wmic_add_user.tar.gz','https://github.com/hunters-forge/mordor','Discovery'),
     ('LM_DCOM_MSHTA_LethalHTA_Sysmon_3_1','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Lateral%20Movement/LM_DCOM_MSHTA_LethalHTA_Sysmon_3_1.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Lateral_Movement'),
     ('LM_PowershellRemoting_sysmon_1_wsmprovhost','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Lateral%20Movement/LM_PowershellRemoting_sysmon_1_wsmprovhost.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Lateral_Movement'),
     ('LM_add_new_namedpipe_tp_nullsession_registry_turla_like_ttp','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Lateral%20Movement/LM_add_new_namedpipe_tp_nullsession_registry_turla_like_ttp.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Lateral_Movement'),
@@ -221,9 +202,6 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('powercat_revShell_sysmon_1_3','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Lateral%20Movement/powercat_revShell_sysmon_1_3.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Lateral_Movement'),
     ('sharprdp_sysmon_7_mstscax','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Lateral%20Movement/sharprdp_sysmon_7_mstscax.dll.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Lateral_Movement'),
     ('sysmon_1_exec_via_sql_xpcmdshell','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Lateral%20Movement/sysmon_1_exec_via_sql_xpcmdshell.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Lateral_Movement'),
-    ('empire_invoke_dcom','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/lateral_movement/host/empire_invoke_dcom.tar.gz','https://github.com/hunters-forge/mordor','Lateral_Movement'),
-    ('empire_invoke_smbexec','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/lateral_movement/host/empire_invoke_smbexec.tar.gz','https://github.com/hunters-forge/mordor','Lateral_Movement'),
-    ('empire_scm_dll_hijack_ikeext','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/lateral_movement/host/empire_scm_dll_hijack_ikeext.tar.gz','https://github.com/hunters-forge/mordor','Lateral_Movement'),
     ('Persistence_Winsock_Catalog%20Change%20EventId_1','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Persistence/Persistence_Winsock_Catalog%20Change%20EventId_1.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Persistence'),
     ('persist_firefox_comhijack_sysmon_11_13_7_1','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Persistence/persist_firefox_comhijack_sysmon_11_13_7_1.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Persistence'),
     ('persistence_SilentProcessExit_ImageHijack_sysmon_13_1','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Persistence/persistence_SilentProcessExit_ImageHijack_sysmon_13_1.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Persistence'),
@@ -237,11 +215,6 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('sysmon_1_persist_bitsjob_SetNotifyCmdLine','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Persistence/sysmon_1_persist_bitsjob_SetNotifyCmdLine.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Persistence'),
     ('sysmon_20_21_1_CommandLineEventConsumer','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Persistence/sysmon_20_21_1_CommandLineEventConsumer.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Persistence'),
     ('wmighost_sysmon_20_21_1','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Persistence/wmighost_sysmon_20_21_1.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Persistence'),
-    ('empire_elevated_registry','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/persistence/host/empire_elevated_registry.tar.gz','https://github.com/hunters-forge/mordor','Persistence'),
-    ('empire_elevated_schtasks','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/persistence/host/empire_elevated_schtasks.tar.gz','https://github.com/hunters-forge/mordor','Persistence'),
-    ('empire_elevated_wmi','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/persistence/host/empire_elevated_wmi.tar.gz','https://github.com/hunters-forge/mordor','Persistence'),
-    ('empire_userland_registry','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/persistence/host/empire_userland_registry.tar.gz','https://github.com/hunters-forge/mordor','Persistence'),
-    ('empire_userland_schtasks','https://github.com/hunters-forge/mordor/raw/master/datasets/small/windows/persistence/host/empire_userland_schtasks.tar.gz','https://github.com/hunters-forge/mordor','Persistence'),
     ('PrivEsc_Imperson_NetSvc_to_Sys_Decoder_Sysmon_1_17_18','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/PrivEsc_Imperson_NetSvc_to_Sys_Decoder_Sysmon_1_17_18.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
     ('RogueWinRM','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/RogueWinRM.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
     ('Sysmon_13_1_UACBypass_SDCLTBypass','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES/raw/master/Privilege%20Escalation/Sysmon_13_1_UACBypass_SDCLTBypass.evtx','https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES','Privilege_Escalation'),
@@ -386,4 +359,5 @@ INSERT INTO "app_example" (name, url, source, category) VALUES
     ('empire_invoke_runas','https://github.com/OTRF/Security-Datasets/raw/master/datasets/atomic/windows/privilege_escalation/host/empire_invoke_runas.tar.gz','https://github.com/OTRF/Security-Datasets','privilege_escalation'),
     ('empire_uac_shellapi_fodhelper','https://github.com/OTRF/Security-Datasets/raw/master/datasets/atomic/windows/privilege_escalation/host/empire_uac_shellapi_fodhelper.zip','https://github.com/OTRF/Security-Datasets','privilege_escalation') 
     ON CONFLICT (name) DO NOTHING;
-;
+
+EOSQL

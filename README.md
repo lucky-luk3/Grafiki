@@ -34,19 +34,17 @@ Any opinion, bug found, improve request ... will be welcome.
 ````bash
 git clone https://github.com/lucky-luk3/Grafiki.git
 cd Grafiki
-chmod +x setup.sh
-sudo ./setup.sh
---- wait ---
-cd grafiki
-python3 manage.py runserver
+sudo -- sh -c -e "echo '127.0.0.1 grafiki.local' >> /etc/hosts"
+docker compose up --build &
+docker exec -it -d grafiki-app-1 /init_django.sh
 ````
-In your browser go to `http://127.0.0.1:8000/`  
+In your browser go to `http://127.0.0.1:8000/` or  `http://grafiki.local:8000/`
 Hunt, learn and enjoy!
 
 ## To-Do
 * Add events 2,6,8,15,23.
 * In memory PostgreSQL database .
-* Integration with Elastalert.
+* ~~Integration with Elastalert.~~
 
 ## Information
 This application can process two types of files.
