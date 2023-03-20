@@ -2,7 +2,7 @@
 
 Grafiki is a Django project about Sysmon and graphs, for the time being.  
 In my opinion EventViewer, Elastic and even Kibana, are not graphic enough. The current threats are complicated and if attackers think in graphs, defenders also must do it.  
-This is a proof of concept, the code was not debugged jet but maybe could be useful for someone, I will improve it.  
+This is a proof of concept, the code was not debugged yet but maybe could be useful for someone, I will improve it.  
 This project started such as EVTX parser to SQL database and this maybe it is the core of the project.  
 
 ## Goals
@@ -35,7 +35,7 @@ Any opinion, bug found, improve request ... will be welcome.
 git clone https://github.com/lucky-luk3/Grafiki.git
 cd Grafiki
 sudo -- sh -c -e "echo '127.0.0.1 grafiki.local' >> /etc/hosts"
-docker compose up --build &
+docker-compose up --build &
 docker exec -it -d grafiki-app-1 /init_django.sh
 ````
 In your browser go to `http://127.0.0.1:8000/` or  `http://grafiki.local:8000/`
