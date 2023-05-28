@@ -7,4 +7,4 @@ sudo -u postgres psql -d grafiki -a -f initial.sql
 
 # Install dependencies
 sudo apt install python3 python3-pip libpq-dev -y
-pip3 install elasticsearch_dsl django psycopg2 djangorestframework django-crispy-forms evtx
+pip3 install elasticsearch_dsl django psycopg2 djangorestframework django-crispy-forms crispy-bootstrap4 evtx
