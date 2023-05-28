@@ -25,7 +25,7 @@ SECRET_KEY = 'j-)4yu(bse8jw4f5v+6-%$f$v1t7#f6a7ug%(0%!=0nvux+sv&'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'grafiki.local']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'grafiki.local']
 
 
 # Application definition
@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'crispy_forms'
+    'crispy_forms',
+    'crispy_bootstrap4'
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
